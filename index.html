@@ -50,13 +50,13 @@
     <!-- Auth Container (Giriş Ekranı) -->
     <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl transition-all duration-500">
         <div class="flex items-center space-x-3 mb-8">
-            <div id="auth-logo-box" class="w-10 h-10 rounded-xl overflow-hidden border border-red-500/30 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg">
+            <div id="auth-logo-box" class="w-10 h-10 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg">
                 <svg viewBox="0 0 100 100" class="w-full h-full">
                     <rect width="100" height="100" fill="#07090f"/>
                     <polygon points="50,15 30,75 70,75" fill="none" stroke="var(--accent-color)" stroke-width="6"/>
                     <line x1="20" y1="50" x2="80" y2="50" stroke="var(--accent-color)" stroke-width="5"/>
                     <line x1="38" y1="30" x2="62" y2="30" stroke="var(--accent-color)" stroke-width="4"/>
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#331111" stroke-width="3"/>
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#333333" stroke-width="3"/>
                 </svg>
             </div>
             <h1 class="text-xl font-bold tracking-widest text-white">ANCBYTE</h1>
@@ -98,13 +98,13 @@
         <!-- Top Navbar -->
         <header class="h-16 dark-glass border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0">
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-xl overflow-hidden border border-red-500/30 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg">
+                <div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg">
                     <svg viewBox="0 0 100 100" class="w-full h-full">
                         <rect width="100" height="100" fill="#07090f"/>
                         <polygon points="50,15 30,75 70,75" fill="none" stroke="var(--accent-color)" stroke-width="6"/>
                         <line x1="20" y1="50" x2="80" y2="50" stroke="var(--accent-color)" stroke-width="5"/>
                         <line x1="38" y1="30" x2="62" y2="30" stroke="var(--accent-color)" stroke-width="4"/>
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#331111" stroke-width="3"/>
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#333333" stroke-width="3"/>
                     </svg>
                 </div>
                 <span class="text-sm font-bold tracking-widest text-white">ANCBYTE</span>
@@ -176,12 +176,15 @@
                 <div id="dynamic-content-box" class="dark-glass border border-slate-800/80 p-6 rounded-2xl max-w-2xl space-y-6">
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Neon Accent Rengi</label>
-                        <div class="flex space-x-3">
-                            <button onclick="setAccentColor('#ef4444', 'rgba(239, 68, 68, 0.35)')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white/50 shadow-lg shadow-red-500/50 transition-transform hover:scale-110"></button>
-                            <button onclick="setAccentColor('#10b981', 'rgba(16, 185, 129, 0.35)')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white/50 shadow-lg shadow-emerald-500/50 transition-transform hover:scale-110"></button>
-                            <button onclick="setAccentColor('#3b82f6', 'rgba(59, 130, 246, 0.35)')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white/50 shadow-lg shadow-blue-500/50 transition-transform hover:scale-110"></button>
-                            <button onclick="setAccentColor('#a855f7', 'rgba(168, 85, 247, 0.35)')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white/50 shadow-lg shadow-purple-500/50 transition-transform hover:scale-110"></button>
-                            <button onclick="setAccentColor('#f59e0b', 'rgba(245, 158, 11, 0.35)')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white/50 shadow-lg shadow-amber-500/50 transition-transform hover:scale-110"></button>
+                        <div class="flex space-x-3 flex-wrap gap-y-2">
+                            <button onclick="setAccentColor('#ffffff', 'rgba(255, 255, 255, 0.35)')" class="w-8 h-8 rounded-full bg-white border-2 border-slate-600 shadow-lg shadow-white/30 transition-transform hover:scale-110" title="Saf Beyaz"></button>
+                            <button onclick="setAccentColor('#ef4444', 'rgba(239, 68, 68, 0.35)')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white/50 shadow-lg shadow-red-500/50 transition-transform hover:scale-110" title="Siber Kırmızı"></button>
+                            <button onclick="setAccentColor('#10b981', 'rgba(16, 185, 129, 0.35)')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white/50 shadow-lg shadow-emerald-500/50 transition-transform hover:scale-110" title="Hacker Yeşili"></button>
+                            <button onclick="setAccentColor('#3b82f6', 'rgba(59, 130, 246, 0.35)')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white/50 shadow-lg shadow-blue-500/50 transition-transform hover:scale-110" title="Siber Mavi"></button>
+                            <button onclick="setAccentColor('#06b6d4', 'rgba(6, 182, 212, 0.35)')" class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-white/50 shadow-lg shadow-cyan-400/50 transition-transform hover:scale-110" title="Neon Cyan"></button>
+                            <button onclick="setAccentColor('#ec4899', 'rgba(236, 72, 153, 0.35)')" class="w-8 h-8 rounded-full bg-pink-500 border-2 border-white/50 shadow-lg shadow-pink-500/50 transition-transform hover:scale-110" title="Siber Pembe"></button>
+                            <button onclick="setAccentColor('#a855f7', 'rgba(168, 85, 247, 0.35)')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white/50 shadow-lg shadow-purple-500/50 transition-transform hover:scale-110" title="Siberpunk Mor"></button>
+                            <button onclick="setAccentColor('#f59e0b', 'rgba(245, 158, 11, 0.35)')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white/50 shadow-lg shadow-amber-500/50 transition-transform hover:scale-110" title="Matrix Amber"></button>
                         </div>
                     </div>
 
@@ -216,8 +219,7 @@
         ];
         let searchHistories = JSON.parse(localStorage.getItem('ancbyte_history')) || {};
 
-        // Tema ayarlarını uygula
-        let savedTheme = JSON.parse(localStorage.getItem('ancbyte_theme')) || { color: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)', mode: 'matrix' };
+        let savedTheme = JSON.parse(localStorage.getItem('ancbyte_theme')) || { color: '#ffffff', glow: 'rgba(255, 255, 255, 0.35)', mode: 'matrix' };
         applyThemeSettings(savedTheme);
 
         function setAccentColor(hex, glowRgba) {
@@ -321,8 +323,7 @@
                 if (u === 'Veynn') {
                     found = { username: u, role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' };
                 } else {
-                    const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
-                    found = { username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: clientInfo };
+                    found = { username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: 'Masaüstü' };
                 }
                 users.push(found);
             }
@@ -342,18 +343,11 @@
             const u = document.getElementById('reg-user').value.trim();
             const p = document.getElementById('reg-pass').value.trim();
 
-            if (bannedUsers.includes(u)) {
-                alert("Bu hesap banlı!");
-                return;
-            }
-            if(users.some(x => x.username === u)) {
-                alert("Bu kullanıcı adı alınmış!");
-                return;
-            }
+            if (bannedUsers.includes(u)) { alert("Banlı!"); return; }
+            if(users.some(x => x.username === u)) { alert("Zaten alınmış!"); return; }
 
             users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: 'Masaüstü' });
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
-            logAction(u, 'Kayıt oldu');
             alert("Kayıt başarılı! Giriş yapabilirsiniz.");
             switchTab('login');
         }
@@ -403,12 +397,15 @@
                 boxElem.innerHTML = `
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Neon Accent Rengi</label>
-                        <div class="flex space-x-3">
-                            <button onclick="setAccentColor('#ef4444', 'rgba(239, 68, 68, 0.35)')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white/50 shadow-lg shadow-red-500/50 transition-transform hover:scale-110"></button>
-                            <button onclick="setAccentColor('#10b981', 'rgba(16, 185, 129, 0.35)')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white/50 shadow-lg shadow-emerald-500/50 transition-transform hover:scale-110"></button>
-                            <button onclick="setAccentColor('#3b82f6', 'rgba(59, 130, 246, 0.35)')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white/50 shadow-lg shadow-blue-500/50 transition-transform hover:scale-110"></button>
-                            <button onclick="setAccentColor('#a855f7', 'rgba(168, 85, 247, 0.35)')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white/50 shadow-lg shadow-purple-500/50 transition-transform hover:scale-110"></button>
-                            <button onclick="setAccentColor('#f59e0b', 'rgba(245, 158, 11, 0.35)')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white/50 shadow-lg shadow-amber-500/50 transition-transform hover:scale-110"></button>
+                        <div class="flex space-x-3 flex-wrap gap-y-2">
+                            <button onclick="setAccentColor('#ffffff', 'rgba(255, 255, 255, 0.35)')" class="w-8 h-8 rounded-full bg-white border-2 border-slate-600 shadow-lg shadow-white/30 transition-transform hover:scale-110" title="Saf Beyaz"></button>
+                            <button onclick="setAccentColor('#ef4444', 'rgba(239, 68, 68, 0.35)')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white/50 shadow-lg shadow-red-500/50 transition-transform hover:scale-110" title="Siber Kırmızı"></button>
+                            <button onclick="setAccentColor('#10b981', 'rgba(16, 185, 129, 0.35)')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white/50 shadow-lg shadow-emerald-500/50 transition-transform hover:scale-110" title="Hacker Yeşili"></button>
+                            <button onclick="setAccentColor('#3b82f6', 'rgba(59, 130, 246, 0.35)')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white/50 shadow-lg shadow-blue-500/50 transition-transform hover:scale-110" title="Siber Mavi"></button>
+                            <button onclick="setAccentColor('#06b6d4', 'rgba(6, 182, 212, 0.35)')" class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-white/50 shadow-lg shadow-cyan-400/50 transition-transform hover:scale-110" title="Neon Cyan"></button>
+                            <button onclick="setAccentColor('#ec4899', 'rgba(236, 72, 153, 0.35)')" class="w-8 h-8 rounded-full bg-pink-500 border-2 border-white/50 shadow-lg shadow-pink-500/50 transition-transform hover:scale-110" title="Siber Pembe"></button>
+                            <button onclick="setAccentColor('#a855f7', 'rgba(168, 85, 247, 0.35)')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white/50 shadow-lg shadow-purple-500/50 transition-transform hover:scale-110" title="Siberpunk Mor"></button>
+                            <button onclick="setAccentColor('#f59e0b', 'rgba(245, 158, 11, 0.35)')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white/50 shadow-lg shadow-amber-500/50 transition-transform hover:scale-110" title="Matrix Amber"></button>
                         </div>
                     </div>
                     <div>
@@ -421,7 +418,7 @@
                 `;
             } else if(title === 'User Management') {
                 document.getElementById('content-title').innerText = 'Owner Control & Logs';
-                descElem.innerText = "Üye rolleri, hakları ve ban yönetimi.";
+                descElem.innerText = "Üye rolleri ve hak yönetimi.";
                 let htmlList = `<div class="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2">`;
                 users.forEach((usr, idx) => {
                     htmlList += `
@@ -431,9 +428,7 @@
                                 <span class="ml-2 text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${usr.role}</span>
                                 <span class="block text-[10px] text-purple-400 mt-1">Kalan Hak: <strong class="text-white">${usr.queriesLeft}</strong></span>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="banUser(${idx})" class="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-1 rounded">Banla</button>
-                            </div>
+                            <button onclick="banUser(${idx})" class="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-1 rounded">Banla</button>
                         </div>`;
                 });
                 htmlList += `</div>`;
