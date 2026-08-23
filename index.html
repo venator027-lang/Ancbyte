@@ -93,12 +93,12 @@
             </div>
 
             <div class="flex items-center space-x-3">
-                <!-- Kalan Sorgu Hakkı Göstergesi -->
+                <!-- Günlük Kalan Sorgu Hakkı Göstergesi -->
                 <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-lg flex items-center space-x-2">
                     <span class="text-xs">⚡</span>
                     <div>
-                        <span class="block text-[9px] text-amber-400 uppercase tracking-widest font-bold">Kalan Hak</span>
-                        <span id="header-query-count" class="block text-xs font-bold text-slate-100 leading-none">1</span>
+                        <span class="block text-[9px] text-amber-400 uppercase tracking-widest font-bold">Günlük Hak</span>
+                        <span id="header-query-count" class="block text-xs font-bold text-slate-100 leading-none">3</span>
                     </div>
                 </div>
 
@@ -159,7 +159,7 @@
                 <p id="content-desc" class="text-xs text-slate-400 mb-6">Look up a Discord ID to pull basic profile signals, potential linked accounts, and any related leak rows.</p>
                 
                 <div id="dynamic-content-box" class="dark-glass border border-slate-800/80 p-6 rounded-2xl max-w-2xl">
-                    <div id="query-limit-info" class="text-xs text-slate-400 mb-3">Owner, no daily search cap.</div>
+                    <div id="query-limit-info" class="text-xs text-slate-400 mb-3">Günlük sorgu hakkı aktif.</div>
                     <div class="flex space-x-3 mb-4">
                         <input type="text" id="search-input" value="295196201253470210" class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
                         <button onclick="executeSearch()" class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
@@ -178,21 +178,41 @@
         let currentUser = null;
 
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
-            { username: 'Veynn', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', info: 'Main Owner' },
-            { username: '/Hayatsız', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', info: 'Co-Owner' }
+            { username: 'Veynn', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
+            { username: '/Hayatsız', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
         ];
+
+        let bannedUsers = JSON.parse(localStorage.getItem('ancbyte_banned')) || [];
 
         let systemLogs = JSON.parse(localStorage.getItem('ancbyte_logs')) || [
             { time: new Date().toLocaleTimeString(), user: 'Veynn', action: 'Sisteme giriş yaptı (Owner)' }
         ];
 
+        function checkDailyReset(userObj) {
+            const today = new Date().toLocaleDateString();
+            if (userObj.role === 'OWNER' || userObj.boost >= 3) {
+                userObj.queriesLeft = 'Sınırsız';
+                userObj.lastReset = today;
+                return;
+            }
+
+            if (userObj.lastReset !== today) {
+                userObj.lastReset = today;
+                if (userObj.boost === 0) userObj.queriesLeft = 3;
+                else if (userObj.boost === 1) userObj.queriesLeft = 20;
+                else if (userObj.boost === 2) userObj.queriesLeft = 75;
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('ancbyte_current_session');
             if (savedUser) {
                 const uObj = JSON.parse(savedUser);
-                if (uObj.username === 'Veynn') {
-                    let freshUser = users.find(x => x.username === 'Veynn');
-                    currentUser = freshUser ? freshUser : uObj;
+                let freshUser = users.find(x => x.username === uObj.username);
+                if (freshUser) {
+                    checkDailyReset(freshUser);
+                    localStorage.setItem('ancbyte_users', JSON.stringify(users));
+                    currentUser = freshUser;
                     launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
                 } else {
                     localStorage.removeItem('ancbyte_current_session');
@@ -230,37 +250,30 @@
             const u = document.getElementById('login-user').value.trim();
             const p = document.getElementById('login-pass').value.trim();
 
-            let role = "USER";
-            let boost = 0;
-            let limit = 1;
+            if (bannedUsers.includes(u)) {
+                alert("Hata: Bu hesap ANCBYTE sisteminden kalıcı olarak BANLANMIŞTIR!");
+                return;
+            }
 
-            const found = users.find(x => x.username === u);
-            if (found) {
-                role = found.role;
-                boost = found.boost;
-                limit = found.queriesLeft;
-            } else {
+            let found = users.find(x => x.username === u);
+            if (!found) {
                 if (u === 'Veynn') {
-                    role = "OWNER";
-                    boost = 3;
-                    limit = 'Sınırsız';
-                    users.push({ username: u, role, boost, queriesLeft: limit, info: 'Main Owner' });
-                    localStorage.setItem('ancbyte_users', JSON.stringify(users));
+                    found = { username: u, role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' };
                 } else {
                     const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
-                    users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 1, info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
-                    localStorage.setItem('ancbyte_users', JSON.stringify(users));
+                    found = { username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" };
                 }
+                users.push(found);
             }
 
-            currentUser = { username: u, role, boostCount: boost, queriesLeft: limit };
-            
-            if (u === 'Veynn') {
-                localStorage.setItem('ancbyte_current_session', JSON.stringify(currentUser));
-            }
+            checkDailyReset(found);
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+
+            currentUser = found;
+            localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: u }));
 
             logAction(u, 'Giriş yaptı');
-            launchDashboard(u, role, limit, false);
+            launchDashboard(u, found.role, found.queriesLeft, false);
         }
 
         function handleRegister(event) {
@@ -268,16 +281,21 @@
             const u = document.getElementById('reg-user').value.trim();
             const p = document.getElementById('reg-pass').value.trim();
 
+            if (bannedUsers.includes(u)) {
+                alert("Hata: Bu kullanıcı adı banlı olduğu için yeni hesap oluşturulamaz!");
+                return;
+            }
+
             if(users.some(x => x.username === u)) {
                 alert("Bu kullanıcı adı zaten alınmış!");
                 return;
             }
 
             const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
-            users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 1, info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
+            users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             logAction(u, 'Yeni hesap oluşturdu');
-            alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
+            alert("Kayıt başarılı! Günlük 3 sorgu hakkın tanımlandı, şimdi giriş yapabilirsin.");
             switchTab('login');
         }
 
@@ -325,12 +343,12 @@
             const boxElem = document.getElementById('dynamic-content-box');
 
             if(title === 'User Management') {
-                descElem.innerText = "Tüm üyelerin rollerini (OWNER/USER), sorgu haklarını dilediğiniz gibi düzenleyebilir, kullanıcıları sistemden atabilir ve canlı log akışını inceleyebilirsiniz.";
+                descElem.innerText = "Tüm üyelerin rollerini, boost ve günlük sorgu haklarını düzenleyebilir, kullanıcıları kalıcı olarak banlayabilir ve canlı log akışını inceleyebilirsiniz.";
                 
                 let htmlList = `
                     <div class="space-y-6">
                         <div>
-                            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">Kayıtlı Üyeler ve Özel Sorgu Hak Yönetimi</h3>
+                            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">Kayıtlı Üyeler ve Ban / Boost Yönetimi</h3>
                             <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-2">`;
                 
                 users.forEach((usr, idx) => {
@@ -348,11 +366,17 @@
                                 <option value="USER" ${usr.role==='USER'?'selected':''}>USER</option>
                                 <option value="OWNER" ${usr.role==='OWNER'?'selected':''}>OWNER</option>
                             </select>
+                            <select onchange="updateUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
+                                <option value="0" ${usr.boost===0?'selected':''}>0 Boost (3 Hak/Gün)</option>
+                                <option value="1" ${usr.boost===1?'selected':''}>1x Boost (20 Hak/Gün)</option>
+                                <option value="2" ${usr.boost===2?'selected':''}>2x Boost (75 Hak/Gün)</option>
+                                <option value="3" ${usr.boost>=3?'selected':''}>3+ Boost (Sınırsız)</option>
+                            </select>
                             <div class="flex items-center space-x-1">
                                 <input type="number" id="custom-query-${idx}" placeholder="Sayı" value="${usr.queriesLeft === 'Sınırsız' ? '' : usr.queriesLeft}" class="w-14 bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1 focus:outline-none focus:border-white">
-                                <button onclick="giveCustomQueries(${idx})" class="bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-1 rounded transition-all">Sorgu Ver</button>
+                                <button onclick="giveCustomQueries(${idx})" class="bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-1 rounded transition-all">Hak Ver</button>
                             </div>
-                            <button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2 py-1 rounded transition-all">Kick</button>`;
+                            <button onclick="banUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2 py-1 rounded transition-all">Banla</button>`;
                     }
 
                     htmlList += `
@@ -360,7 +384,7 @@
                             <div>
                                 <span class="text-xs font-bold text-white">${usr.username}</span>
                                 <span class="ml-2 text-[9px] px-2 py-0.5 rounded ${usr.role === 'OWNER' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-300'} font-bold">${usr.role}</span>
-                                <span class="block text-[10px] text-purple-400 mt-1">Kalan Sorgu Hakkı: <strong class="text-white">${usr.queriesLeft}</strong></span>
+                                <span class="block text-[10px] text-purple-400 mt-1">Kalan Günlük Hak: <strong class="text-white">${usr.queriesLeft}</strong></span>
                             </div>
                             <div class="flex items-center space-x-2 flex-wrap justify-end">
                                 ${controlsHtml}
@@ -384,7 +408,7 @@
 
                 boxElem.innerHTML = htmlList;
             } else {
-                let limitText = currentUser.role === 'OWNER' ? 'Owner, no daily search cap.' : `Kalan sorgu hakkınız: ${currentUser.queriesLeft}`;
+                let limitText = currentUser.role === 'OWNER' ? 'Owner, no daily search cap.' : `Bugünkü kalan sorgu hakkın: ${currentUser.queriesLeft}`;
                 descElem.innerText = title + " verilerini sorgulamak ve analiz etmek için bu alanı kullanabilirsiniz.";
                 boxElem.innerHTML = `
                     <div id="query-limit-info" class="text-xs text-purple-400 mb-3 font-semibold">${limitText}</div>
@@ -404,9 +428,9 @@
             const val = document.getElementById('search-input').value.trim();
             if(!val) return;
 
-            if(currentUser.role !== 'OWNER') {
+            if(currentUser.role !== 'OWNER' && currentUser.queriesLeft !== 'Sınırsız') {
                 if(currentUser.queriesLeft <= 0) {
-                    alert("Sorgu hakkınız kalmadı! Daha fazla hak için sunucumuza boost basmanız gerekmektedir.");
+                    alert("Bugünkü sorgu hakkın bitti! Yarın tekrar hakların yenilenecek veya daha fazlası için sunucuya boost basabilirsin.");
                     return;
                 }
                 currentUser.queriesLeft--;
@@ -449,9 +473,25 @@
             users[index].role = roleVal;
             if(roleVal === 'OWNER') {
                 users[index].queriesLeft = 'Sınırsız';
+            } else {
+                let b = users[index].boost;
+                users[index].queriesLeft = b >= 3 ? 'Sınırsız' : (b === 0 ? 3 : (b === 1 ? 20 : 75));
             }
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             logAction(currentUser.username, `${users[index].username} kullanıcısının rolünü ${roleVal} olarak güncelledi`);
+            switchTabContent('User Management');
+        }
+
+        function updateUserBoost(index, boostVal) {
+            let bNum = parseInt(boostVal);
+            users[index].boost = bNum;
+            if(bNum >= 3 || users[index].role === 'OWNER') {
+                users[index].queriesLeft = 'Sınırsız';
+            } else {
+                users[index].queriesLeft = bNum === 0 ? 3 : (bNum === 1 ? 20 : 75);
+            }
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            logAction(currentUser.username, `${users[index].username} kullanıcısının boost seviyesini ${bNum} olarak güncelledi`);
             switchTabContent('User Management');
         }
 
@@ -466,26 +506,30 @@
 
             users[index].queriesLeft = qNum;
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
-            logAction(currentUser.username, `${users[index].username} kullanıcısına ${qNum} adet sorgu hakkı verdi`);
+            logAction(currentUser.username, `${users[index].username} kullanıcısına ${qNum} adet günlük hak tanımladı`);
             switchTabContent('User Management');
         }
 
-        function kickUser(index) {
+        function banUser(index) {
             let targetUser = users[index];
             if(targetUser.username === 'Veynn') {
-                alert("Hata: Ana Owner (Veynn) sistemden atılamaz!");
+                alert("Hata: Ana Owner (Veynn) sistemden banlanamaz!");
                 return;
             }
             if(targetUser.username === currentUser.username) {
-                alert("Kendini sistemden atamazsın!");
+                alert("Kendini banlayamazsın!");
                 return;
             }
 
-            if(confirm(`Bu kullanıcıyı (${targetUser.username}) sistemden atmak istediğinize emin misiniz?`)) {
-                let kicked = targetUser.username;
+            if(confirm(`Bu kullanıcıyı (${targetUser.username}) kalıcı olarak banlamak istediğinize emin misiniz? (Bir daha kayıt olamayacak)`)) {
+                let bannedName = targetUser.username;
+                bannedUsers.push(bannedName);
+                localStorage.setItem('ancbyte_banned', JSON.stringify(bannedUsers));
+
                 users.splice(index, 1);
                 localStorage.setItem('ancbyte_users', JSON.stringify(users));
-                logAction(currentUser.username, `${kicked} isimli kullanıcıyı kickledi`);
+
+                logAction(currentUser.username, `${bannedName} isimli kullanıcıyı kalıcı olarak BANLADI`);
                 switchTabContent('User Management');
             }
         }
