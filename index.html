@@ -1,60 +1,40 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <title>ANCBYTE</title>
-    <style>
-        /* Buraya mevcut CSS kodlarını ekleyebilirsin, tasarım değişmedi */
-        body { background-color: #0d0f12; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        .login-container { display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; }
-        .dashboard-container { display: none; padding: 20px; }
-        /* Temel stil kalıntıları */
-    </style>
-</head>
-<body>
+let currentUser = null;
 
-    <!-- Giriş Ekranı -->
-    <div id="login-screen" class="login-container">
-        <form onsubmit="handleLogin(event)">
-            <h2>ANCBYTE GİRİŞ</h2>
-            <input type="text" id="login-user" placeholder="Kullanıcı Adı" required>
-            <input type="password" id="login-pass" placeholder="Şifre" required>
-            <button type="submit">Giriş Yap</button>
-        </form>
-    </div>
-
-    <!-- Dashboard Ekranı -->
-    <div id="dashboard-screen" class="dashboard-container">
-        <h1 id="welcome-title">Dashboard</h1>
-        <button onclick="handleLogout()">Çıkış Yap</button>
-    </div>
-
-<script>
-    let currentUser = null;
-
-    // Versiyon kontrolü ile veritabanını ve bozuk oturumları sıfırlıyoruz
-    const DB_VERSION = 'veynn_auth_v11_perfect';
+    // Veritabanı versiyonunu güncelleyip eski hatalı önbelleği temizliyoruz
+    const DB_VERSION = 'veynn_auth_v13_final';
     if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
         localStorage.clear();
         localStorage.setItem('ancbyte_db_ver', DB_VERSION);
     }
 
+    // Varsayılan kullanıcılar ve net şifre tanımları
     let defaultUsers = [
         { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
         { username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
     ];
 
     let users = JSON.parse(localStorage.getItem('ancbyte_users'));
+
     if (!users || !Array.isArray(users)) {
         users = defaultUsers;
         localStorage.setItem('ancbyte_users', JSON.stringify(users));
     } else {
+        // Veynn kullanıcısını ve şifresini her açılışta zorla güncelle/garantiye al
         let veynnIndex = users.findIndex(x => x.username.toLowerCase() === 'veynn');
         if (veynnIndex !== -1) {
-            users[veynnIndex] = { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' };
+            users[veynnIndex].password = '0409kyzex';
+            users[veynnIndex].role = 'OWNER';
+            users[veynnIndex].queriesLeft = 'Sınırsız';
         } else {
             users.push({ username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' });
         }
+
+        // /Hayatsız kontrolü
+        let hayatsizIndex = users.findIndex(x => x.username.toLowerCase() === '/hayatsız');
+        if (hayatsizIndex === -1) {
+            users.push({ username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' });
+        }
+
         localStorage.setItem('ancbyte_users', JSON.stringify(users));
     }
 
@@ -64,12 +44,16 @@
         if (savedSession) {
             try {
                 let parsed = JSON.parse(savedSession);
-                // Sadece ve sadece Veynn hesabı otomatik içeri alınır
+                // Sadece Veynn hesabı otomatik içeri alınır (/Hayatsız asla oto-login olmaz)
                 if (parsed.username && parsed.username.toLowerCase() === 'veynn') {
                     let found = users.find(x => x.username.toLowerCase() === 'veynn');
                     if (found) {
                         currentUser = found;
-                        launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft);
+                        // Mevcut projedeki dashboard açma fonksiyonun neyse buraya uyarlanır
+                        // Eğer projedeki ana fonksiyonun adı farklıysa (örn: launchDashboard), kendi fonksiyonunu çağırabilirsin
+                        if (typeof launchDashboard === 'function') {
+                            launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
+                        }
                         return;
                     }
                 }
@@ -93,20 +77,16 @@
 
         currentUser = found;
         
-        // Sadece Veynn oturumu hafızada tutulur (Auto-login aktif olur), Hayatsız ve diğerleri her seferinde şifre ister
+        // Sadece Veynn oturumu hafızada tutulur (auto-login aktif olur), Hayatsız her seferinde şifre ister
         if (currentUser.username.toLowerCase() === 'veynn') {
             localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: 'Veynn' }));
         } else {
             localStorage.removeItem('ancbyte_current_session');
         }
 
-        launchDashboard(found.username, found.role, found.queriesLeft);
-    }
-
-    function launchDashboard(username, role, queriesLeft) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('dashboard-screen').style.display = 'block';
-        document.getElementById('welcome-title').innerText = `Hoş geldin, ${username} (${role})`;
+        if (typeof launchDashboard === 'function') {
+            launchDashboard(found.username, found.role, found.queriesLeft, false);
+        }
     }
 
     function handleLogout() {
@@ -114,7 +94,3 @@
         currentUser = null;
         location.reload();
     }
-</script>
-
-</body>
-</html>
