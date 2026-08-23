@@ -181,8 +181,7 @@
     <script>
         let currentUser = null;
 
-        // VERSİYON KONTROLÜ - v7 ile tamamen temiz başlangıç
-        const DB_VERSION = 'veynn_auth_v7';
+        const DB_VERSION = 'veynn_auth_v9_exclusive';
         if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
             localStorage.clear();
             localStorage.setItem('ancbyte_db_ver', DB_VERSION);
@@ -196,6 +195,14 @@
         let users = JSON.parse(localStorage.getItem('ancbyte_users'));
         if (!users || !Array.isArray(users)) {
             users = defaultUsers;
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+        } else {
+            let veynnIndex = users.findIndex(x => x.username.toLowerCase() === 'veynn');
+            if (veynnIndex !== -1) {
+                users[veynnIndex] = { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' };
+            } else {
+                users.push({ username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' });
+            }
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
         }
 
@@ -252,22 +259,27 @@
             }
         }
 
-        // OTOMATİK GİRİŞ KONTROLÜ
+        // SADECE VEYNN HESABI İÇİN ÖZEL OTOMATİK GİRİŞ KONTROLÜ
         window.addEventListener('DOMContentLoaded', () => {
             const savedSession = localStorage.getItem('ancbyte_current_session');
             if (savedSession) {
                 try {
                     let parsed = JSON.parse(savedSession);
-                    let found = users.find(x => x.username.toLowerCase() === parsed.username.toLowerCase());
-                    if (found) {
-                        checkDailyReset(found);
-                        currentUser = found;
-                        launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
+                    // Sadece kullanıcı adı 'Veynn' ise direkt içeri al, diğer hesaplar için otomatik girişi işletme
+                    if (parsed.username && parsed.username.toLowerCase() === 'veynn') {
+                        let found = users.find(x => x.username.toLowerCase() === 'veynn');
+                        if (found) {
+                            checkDailyReset(found);
+                            currentUser = found;
+                            launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
+                            return;
+                        }
                     }
                 } catch(e) {
                     localStorage.removeItem('ancbyte_current_session');
                 }
             }
+            // Veynn dışındaki hiç kimse veya oturumu kapalı olanlar giriş ekranında kalır.
         });
 
         function logAction(user, action) {
@@ -317,7 +329,13 @@
             localStorage.setItem('ancbyte_users', JSON.stringify(currentUsersList));
 
             currentUser = found;
-            localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
+            
+            // Oturumu sadece Veynn ise otomatik hatırla, diğer hesaplarda saklama (böylece Veynn'e özel olur)
+            if (currentUser.username.toLowerCase() === 'veynn') {
+                localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
+            } else {
+                localStorage.removeItem('ancbyte_current_session');
+            }
 
             logAction(found.username, 'Giriş yaptı');
             launchDashboard(found.username, found.role, found.queriesLeft, false);
