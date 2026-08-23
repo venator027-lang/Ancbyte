@@ -181,15 +181,42 @@
     <script>
         let currentUser = null;
 
+        // VERSİYON KONTROLÜ: v4 ile veritabanı tamamen güncellendi ve zorla düzeltildi
+        const DB_VERSION = 'veynn_auth_v4';
+        if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
+            localStorage.removeItem('ancbyte_users');
+            localStorage.removeItem('ancbyte_current_session');
+            localStorage.setItem('ancbyte_db_ver', DB_VERSION);
+        }
+
         let defaultUsers = [
             { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
             { username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
         ];
 
         let users = JSON.parse(localStorage.getItem('ancbyte_users'));
-        // Eğer kullanıcı listesi bozuksa ya da Veynn / /Hayatsız yoksa direkt sıfırdan kur
-        if (!users || !Array.isArray(users) || !users.some(u => u.username.toLowerCase() === 'veynn')) {
+        if (!users || !Array.isArray(users)) {
             users = defaultUsers;
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+        } else {
+            // Veynn şifre ve rol koruması
+            let vUser = users.find(x => x.username.toLowerCase() === 'veynn');
+            if (vUser) {
+                vUser.password = '0409kyzex';
+                vUser.role = 'OWNER';
+            } else {
+                users.push(defaultUsers[0]);
+            }
+
+            // /Hayatsız isim, şifre ve rol koruması
+            let hUser = users.find(x => x.username.toLowerCase() === '/hayatsız');
+            if (hUser) {
+                hUser.username = '/Hayatsız';
+                hUser.password = '/HayatsızANC';
+                hUser.role = 'OWNER';
+            } else {
+                users.push(defaultUsers[1]);
+            }
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
         }
 
@@ -442,7 +469,7 @@
                 descElem.innerText = "Üye rolleri, hak ve boost yönetimi.";
                 let htmlList = `<div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
                 users.forEach((usr, idx) => {
-                    let isProtectedOwner = (usr.username.toLowerCase() === 'veynn' || (usr.role === 'OWNER' && currentUser.username.toLowerCase() !== 'veynn'));
+                    let isProtectedOwner = (usr.username.toLowerCase() === 'veynn' || usr.username.toLowerCase() === '/hayatsız' || (usr.role === 'OWNER' && currentUser.username.toLowerCase() !== 'veynn'));
                     
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-4 rounded-xl gap-2">
@@ -563,12 +590,8 @@
         }
 
         function banUser(index) {
-            if (users[index].username.toLowerCase() === 'veynn') {
-                alert("Asıl sahip (Veynn) banlanamaz!");
-                return;
-            }
-            if (users[index].role === 'OWNER' && currentUser.username.toLowerCase() !== 'veynn') {
-                alert("Başka bir Owner'ı sadece ana sahip (Veynn) banlayabilir!");
+            if (users[index].username.toLowerCase() === 'veynn' || users[index].username.toLowerCase() === '/hayatsız') {
+                alert("Sistem sahipleri (Veynn / /Hayatsız) banlanamaz!");
                 return;
             }
             bannedUsers.push(users[index].username);
