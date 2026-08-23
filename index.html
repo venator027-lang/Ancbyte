@@ -32,15 +32,12 @@
     <!-- Auth Container (Giriş Ekranı) -->
     <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl border border-slate-800/80 transition-all duration-500">
         <div class="flex items-center space-x-3 mb-8">
-            <!-- Özel Gotik / Anarşist SVG Logo -->
             <div class="w-10 h-10 rounded-xl overflow-hidden border border-red-500/30 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg shadow-red-950/40">
                 <svg viewBox="0 0 100 100" class="w-full h-full">
                     <rect width="100" height="100" fill="#07090f"/>
-                    <!-- Anarşi İşareti Çizgileri -->
                     <polygon points="50,15 30,75 70,75" fill="none" stroke="#ef4444" stroke-width="6"/>
                     <line x1="20" y1="50" x2="80" y2="50" stroke="#ef4444" stroke-width="5"/>
                     <line x1="38" y1="30" x2="62" y2="30" stroke="#ef4444" stroke-width="4"/>
-                    <!-- Kan / Karanlık Efekt Detayı -->
                     <circle cx="50" cy="50" r="42" fill="none" stroke="#331111" stroke-width="3"/>
                 </svg>
             </div>
@@ -135,12 +132,20 @@
                     </nav>
                 </div>
 
-                <!-- Sadece Owner'lara Görünen Özel Menü -->
-                <div id="owner-menu-section" class="hidden">
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
-                    <nav class="space-y-1">
-                        <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management</span></a>
-                    </nav>
+                <!-- Sadece Owner'lara Görünen Özel Menüler -->
+                <div id="owner-menu-section" class="hidden space-y-4">
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
+                        <nav class="space-y-1">
+                            <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management</span></a>
+                        </nav>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-widest text-purple-400 px-3 mb-2">System Logs</div>
+                        <nav class="space-y-1">
+                            <a href="#" onclick="switchTabContent('Audit Logs')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-purple-300 hover:bg-purple-500/10 transition-all border border-purple-500/30"><span>📋</span><span>Audit Trail & Logs</span></a>
+                        </nav>
+                    </div>
                 </div>
             </aside>
 
@@ -150,10 +155,10 @@
                 <p id="content-desc" class="text-xs text-slate-400 mb-6">Look up a Discord ID to pull basic profile signals, potential linked accounts, and any related leak rows.</p>
                 
                 <div id="dynamic-content-box" class="dark-glass border border-slate-800/80 p-6 rounded-2xl max-w-2xl">
-                    <div class="text-xs text-slate-400 mb-3">Owner, no daily Discord search cap.</div>
+                    <div id="query-limit-info" class="text-xs text-slate-400 mb-3">Owner, no daily search cap.</div>
                     <div class="flex space-x-3">
-                        <input type="text" value="295196201253470210" class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
-                        <button class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
+                        <input type="text" id="search-input" value="295196201253470210" class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
+                        <button onclick="executeSearch()" class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
                     </div>
                 </div>
             </main>
@@ -161,10 +166,22 @@
     </div>
 
     <script>
+        let currentUser = { username: 'Veynn', role: 'OWNER', boostCount: 3 };
+
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
-            { username: 'Veynn', role: 'OWNER', info: 'Main Admin' },
-            { username: '/Hayatsız', role: 'OWNER', info: 'Co-Owner' }
+            { username: 'Veynn', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', info: 'Main Admin' },
+            { username: '/Hayatsız', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', info: 'Co-Owner' }
         ];
+
+        let systemLogs = JSON.parse(localStorage.getItem('ancbyte_logs')) || [
+            { time: new Date().toLocaleTimeString(), user: 'Veynn', action: 'Sisteme giriş yaptı (Owner)' }
+        ];
+
+        function logAction(user, action) {
+            systemLogs.unshift({ time: new Date().toLocaleTimeString(), user, action });
+            if(systemLogs.length > 50) systemLogs.pop();
+            localStorage.setItem('ancbyte_logs', JSON.stringify(systemLogs));
+        }
 
         function switchTab(tab) {
             const loginBtn = document.getElementById('tab-login');
@@ -191,18 +208,27 @@
             const p = document.getElementById('login-pass').value.trim();
 
             let role = "USER";
-            
+            let boost = 0;
+            let limit = 1;
+
             if ((u === 'Veynn' && p === 'Veynn123') || (u === '/Hayatsız' && p === '/HayatsızΨ123') || u === 'Veynn') {
                 role = "OWNER";
+                boost = 3;
+                limit = 9999;
             } else {
                 const found = users.find(x => x.username === u);
-                if (!found) {
+                if (found) {
+                    boost = found.boost;
+                    limit = found.queriesLeft;
+                } else {
                     const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
-                    users.push({ username: u, role: 'USER', info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
+                    users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 1, info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
                     localStorage.setItem('ancbyte_users', JSON.stringify(users));
                 }
             }
 
+            currentUser = { username: u, role, boostCount: boost, queriesLeft: limit };
+            logAction(u, 'Giriş yaptı');
             launchDashboard(u, role);
         }
 
@@ -217,8 +243,9 @@
             }
 
             const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
-            users.push({ username: u, role: 'USER', info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
+            users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 1, info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            logAction(u, 'Yeni hesap oluşturdu');
             alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
             switchTab('login');
         }
@@ -245,44 +272,106 @@
             }, 400);
         }
 
+        let currentActiveTab = 'Discord';
+
         function switchTabContent(title) {
-            document.getElementById('content-title').innerText = title + (title === 'User Management' ? '' : ' Lookup');
+            currentActiveTab = title;
+            document.getElementById('content-title').innerText = title + (['User Management', 'Audit Logs'].includes(title) ? '' : ' Lookup');
             
             const descElem = document.getElementById('content-desc');
             const boxElem = document.getElementById('dynamic-content-box');
 
             if(title === 'User Management') {
-                descElem.innerText = "Sisteme giriş yapan ve kayıt olan kullanıcıları görüntüleyebilir, bağlantıyı paylaşan kişileri tespit edip sistemden atabilirsiniz.";
+                descElem.innerText = "Sisteme giriş yapan üyeleri görüntüleyebilir, boost seviyelerini düzenleyebilir ve bağlantıyı paylaşanları sistemden atabilirsiniz.";
                 
-                let htmlList = `<div class="space-y-3"><h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-4">Sisteme Giren Üyeler ve Cihaz Bilgileri</h3><div class="space-y-2">`;
+                let htmlList = `<div class="space-y-3"><h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-4">Kayıtlı Üyeler ve Boost Hakları</h3><div class="space-y-2">`;
                 users.forEach((usr, idx) => {
+                    let boostText = usr.boost === 0 ? 'Boost Yok (1 Hak)' : (usr.boost === 1 ? '1 Boost (30 Hak)' : (usr.boost === 2 ? '2 Boost (65 Hak)' : '3+ Boost (Sınırsız)'));
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl">
                             <div>
                                 <span class="text-xs font-bold text-white">${usr.username}</span>
                                 <span class="ml-2 text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${usr.role}</span>
-                                <span class="block text-[10px] text-slate-400 mt-1">Cihaz/Giriş: ${usr.info || 'Bilinmiyor'}</span>
+                                <span class="block text-[10px] text-purple-400 mt-1">Durum: ${boostText} | Kalan Hak: ${usr.queriesLeft}</span>
                             </div>
-                            ${usr.role !== 'OWNER' ? `<button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Kick / Ban</button>` : `<span class="text-[10px] text-slate-500">Protected</span>`}
+                            <div class="flex items-center space-x-2">
+                                ${usr.role !== 'OWNER' ? `
+                                    <select onchange="updateUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
+                                        <option value="0" ${usr.boost==0?'selected':''}>0 Boost</option>
+                                        <option value="1" ${usr.boost==1?'selected':''}>1 Boost (30)</option>
+                                        <option value="2" ${usr.boost==2?'selected':''}>2 Boost (65)</option>
+                                        <option value="3" ${usr.boost==3?'selected':''}>3+ Boost (Sınırsız)</option>
+                                    </select>
+                                    <button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Kick</button>` 
+                                    : `<span class="text-[10px] text-slate-500">Protected</span>`}
+                            </div>
                         </div>`;
                 });
                 htmlList += `</div></div>`;
                 boxElem.innerHTML = htmlList;
+            } else if(title === 'Audit Logs') {
+                descElem.innerText = "Sistem içerisindeki tüm kullanıcı hareketleri, sorgular ve girişler gerçek zamanlı olarak burada kayıt altına alınır.";
+                
+                let logHtml = `<div class="space-y-3"><h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-4">Canlı Sistem Günlükleri (Audit Trail)</h3><div class="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar">`;
+                systemLogs.forEach(log => {
+                    logHtml += `
+                        <div class="bg-slate-950/80 border border-slate-800/80 p-2.5 rounded-lg flex items-center justify-between text-[11px]">
+                            <div><span class="text-slate-500 mr-2">[${log.time}]</span><strong class="text-white">${log.user}</strong>: <span class="text-slate-300">${log.action}</span></div>
+                        </div>`;
+                });
+                logHtml += `</div></div>`;
+                boxElem.innerHTML = logHtml;
             } else {
+                let limitText = currentUser.role === 'OWNER' ? 'Owner, no daily search cap.' : (currentUser.queriesLeft === 'Sınırsız' ? '3+ Boost aktif, Sınırsız sorgu hakkı.' : `Kalan sorgu hakkınız: ${currentUser.queriesLeft}`);
                 descElem.innerText = title + " verilerini sorgulamak ve analiz etmek için bu alanı kullanabilirsiniz.";
                 boxElem.innerHTML = `
-                    <div class="text-xs text-slate-400 mb-3">Owner, no daily search cap.</div>
+                    <div id="query-limit-info" class="text-xs text-purple-400 mb-3 font-semibold">${limitText}</div>
                     <div class="flex space-x-3">
-                        <input type="text" placeholder="Sorgulanacak değeri girin..." class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
-                        <button class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
+                        <input type="text" id="search-input" placeholder="Sorgulanacak değeri girin..." class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
+                        <button onclick="executeSearch()" class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
                     </div>`;
             }
         }
 
+        function executeSearch() {
+            const val = document.getElementById('search-input').value;
+            if(!val) return;
+
+            if(currentUser.role !== 'OWNER') {
+                if(currentUser.queriesLeft <= 0) {
+                    alert("Sorgu hakkınız kalmadı! Daha fazla hak için sunucumuza boost basmanız gerekmektedir.");
+                    return;
+                }
+                currentUser.queriesLeft--;
+                // Local'deki kullanıcıyı güncelle
+                let uObj = users.find(x => x.username === currentUser.username);
+                if(uObj) {
+                    uObj.queriesLeft = currentUser.queriesLeft;
+                    localStorage.setItem('ancbyte_users', JSON.stringify(users));
+                }
+            }
+
+            logAction(currentUser.username, `${currentActiveTab} araması yaptı: ${val}`);
+            alert(currentActiveTab + " sorgusu başarıyla gerçekleştirildi!");
+            switchTabContent(currentActiveTab);
+        }
+
+        function updateUserBoost(index, boostVal) {
+            let b = parseInt(boostVal);
+            let limit = b === 0 ? 1 : (b === 1 ? 30 : (b === 2 ? 65 : 'Sınırsız'));
+            users[index].boost = b;
+            users[index].queriesLeft = limit;
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            logAction(currentUser.username, `${users[index].username} kullanıcısının boost seviyesini ${b} olarak güncelledi`);
+            switchTabContent('User Management');
+        }
+
         function kickUser(index) {
             if(confirm("Bu kullanıcıyı sistemden atmak (banlamak) istediğinize emin misiniz?")) {
+                let kicked = users[index].username;
                 users.splice(index, 1);
                 localStorage.setItem('ancbyte_users', JSON.stringify(users));
+                logAction(currentUser.username, `${kicked} isimli kullanıcıyı kickledi`);
                 switchTabContent('User Management');
             }
         }
@@ -313,9 +402,9 @@
             ctx.font = 'bold ' + fontSize + 'px monospace';
 
             for (let i = 0; i < drops.length; i++) {
-                let text = letters[Math.floor(Math.random() * letters.length)];
+                let testText = letters[Math.floor(Math.random() * letters.length)];
                 ctx.fillStyle = Math.random() > 0.8 ? '#ffffff' : '#94a3b8';
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                ctx.fillText(testText, i * fontSize, drops[i] * fontSize);
 
                 if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
                     drops[i] = 0;
