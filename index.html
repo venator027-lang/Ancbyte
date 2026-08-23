@@ -183,7 +183,7 @@
 
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
             { username: 'Veynn', password: '123', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
-            { username: '/Hayatsız', password: '/HayatsızΨ123', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
+            { username: '/Hayatsız', password: 'Hayatsiz123', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
         ];
 
         let bannedUsers = JSON.parse(localStorage.getItem('ancbyte_banned')) || [];
@@ -218,14 +218,13 @@
         }
 
         function calculateLimitByBoost(userObj) {
-            // Rol OWNER ise boost kaç olursa olsun sınırsız hak verir
             if (userObj.role === 'OWNER') return 'Sınırsız';
             
             const boostLevel = userObj.boost;
             if (boostLevel >= 3) return 'Sınırsız';
             if (boostLevel === 2) return 75;
             if (boostLevel === 1) return 20;
-            return 3; // Boost 0
+            return 3;
         }
 
         function checkDailyReset(userObj) {
@@ -245,7 +244,7 @@
             const savedUser = localStorage.getItem('ancbyte_current_session');
             if (savedUser) {
                 const uObj = JSON.parse(savedUser);
-                let freshUser = users.find(x => x.username === uObj.username);
+                let freshUser = users.find(x => x.username.toLowerCase() === uObj.username.toLowerCase());
                 if (freshUser) {
                     checkDailyReset(freshUser);
                     localStorage.setItem('ancbyte_users', JSON.stringify(users));
@@ -285,14 +284,14 @@
         function handleLogin(event) {
             event.preventDefault();
             const u = document.getElementById('login-user').value.trim();
-            const p = document.getElementById('login-pass').value.trim();
+            const p = document.getElementById('login-pass').value;
 
-            if (bannedUsers.includes(u)) {
+            if (bannedUsers.some(b => b.toLowerCase() === u.toLowerCase())) {
                 alert("Hata: Bu hesap ANCBYTE sisteminden kalıcı olarak BANLANMIŞTIR!");
                 return;
             }
 
-            let found = users.find(x => x.username === u);
+            let found = users.find(x => x.username.toLowerCase() === u.toLowerCase());
             
             if (!found || found.password !== p) {
                 alert("Hata: Geçersiz kullanıcı adı veya şifre!");
@@ -303,19 +302,19 @@
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
 
             currentUser = found;
-            localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: u }));
+            localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
 
-            logAction(u, 'Giriş yaptı');
-            launchDashboard(u, found.role, found.queriesLeft, false);
+            logAction(found.username, 'Giriş yaptı');
+            launchDashboard(found.username, found.role, found.queriesLeft, false);
         }
 
         function handleRegister(event) {
             event.preventDefault();
             const u = document.getElementById('reg-user').value.trim();
-            const p = document.getElementById('reg-pass').value.trim();
+            const p = document.getElementById('reg-pass').value;
 
-            if (bannedUsers.includes(u)) { alert("Banlı!"); return; }
-            if(users.some(x => x.username === u)) { alert("Zaten alınmış!"); return; }
+            if (bannedUsers.some(b => b.toLowerCase() === u.toLowerCase())) { alert("Banlı!"); return; }
+            if(users.some(x => x.username.toLowerCase() === u.toLowerCase())) { alert("Zaten alınmış!"); return; }
 
             users.push({ username: u, password: p, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: 'Masaüstü' });
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
@@ -512,7 +511,6 @@
                 return;
             }
             users[index].role = roleVal;
-            // Rol OWNER yapıldığı an boost seviyesi ne olursa olsun haklar sınırsız olur
             users[index].queriesLeft = calculateLimitByBoost(users[index]);
             
             if (currentUser.username === users[index].username) {
