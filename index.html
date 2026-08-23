@@ -181,11 +181,10 @@
     <script>
         let currentUser = null;
 
-        // VERSİYON KONTROLÜ: v5 ile veritabanı tamamen sıfırlanıp garanti hale getirildi
-        const DB_VERSION = 'veynn_auth_v5';
+        // VERSİYON KONTROLÜ - v7 ile tamamen temiz başlangıç
+        const DB_VERSION = 'veynn_auth_v7';
         if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
-            localStorage.removeItem('ancbyte_users');
-            localStorage.removeItem('ancbyte_current_session');
+            localStorage.clear();
             localStorage.setItem('ancbyte_db_ver', DB_VERSION);
         }
 
@@ -197,27 +196,6 @@
         let users = JSON.parse(localStorage.getItem('ancbyte_users'));
         if (!users || !Array.isArray(users)) {
             users = defaultUsers;
-            localStorage.setItem('ancbyte_users', JSON.stringify(users));
-        } else {
-            // Veynn şifre ve rol koruması
-            let vUser = users.find(x => x.username.toLowerCase() === 'veynn');
-            if (vUser) {
-                vUser.username = 'Veynn';
-                vUser.password = '0409kyzex';
-                vUser.role = 'OWNER';
-            } else {
-                users.push(defaultUsers[0]);
-            }
-
-            // /Hayatsız şifre ve rol koruması
-            let hUser = users.find(x => x.username.toLowerCase() === '/hayatsız');
-            if (hUser) {
-                hUser.username = '/Hayatsız';
-                hUser.password = '/HayatsızANC';
-                hUser.role = 'OWNER';
-            } else {
-                users.push(defaultUsers[1]);
-            }
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
         }
 
@@ -254,7 +232,6 @@
 
         function calculateLimitByBoost(userObj) {
             if (userObj.role === 'OWNER') return 'Sınırsız';
-            
             const boostLevel = userObj.boost;
             if (boostLevel >= 3) return 'Sınırsız';
             if (boostLevel === 2) return 75;
@@ -275,23 +252,18 @@
             }
         }
 
-        // SADECE "Veynn" için otomatik giriş kontrolü
+        // OTOMATİK GİRİŞ KONTROLÜ
         window.addEventListener('DOMContentLoaded', () => {
             const savedSession = localStorage.getItem('ancbyte_current_session');
             if (savedSession) {
                 try {
-                    const uObj = JSON.parse(savedSession);
-                    if (uObj.username && uObj.username.toLowerCase() === 'veynn') {
-                        let freshUser = users.find(x => x.username.toLowerCase() === 'veynn');
-                        if (freshUser) {
-                            checkDailyReset(freshUser);
-                            localStorage.setItem('ancbyte_users', JSON.stringify(users));
-                            currentUser = freshUser;
-                            launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
-                            return;
-                        }
+                    let parsed = JSON.parse(savedSession);
+                    let found = users.find(x => x.username.toLowerCase() === parsed.username.toLowerCase());
+                    if (found) {
+                        checkDailyReset(found);
+                        currentUser = found;
+                        launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
                     }
-                    localStorage.removeItem('ancbyte_current_session');
                 } catch(e) {
                     localStorage.removeItem('ancbyte_current_session');
                 }
@@ -333,7 +305,6 @@
                 return;
             }
 
-            // En güncel users listesini hafızadan tekrar çekip karşılaştırıyoruz
             let currentUsersList = JSON.parse(localStorage.getItem('ancbyte_users')) || users;
             let found = currentUsersList.find(x => x.username.toLowerCase() === u.toLowerCase());
             
@@ -346,13 +317,7 @@
             localStorage.setItem('ancbyte_users', JSON.stringify(currentUsersList));
 
             currentUser = found;
-            
-            // SADECE Veynn giriş yaptığında otomatik oturum hafızasına kaydedilir
-            if (found.username.toLowerCase() === 'veynn') {
-                localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
-            } else {
-                localStorage.removeItem('ancbyte_current_session');
-            }
+            localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
 
             logAction(found.username, 'Giriş yaptı');
             launchDashboard(found.username, found.role, found.queriesLeft, false);
@@ -473,7 +438,7 @@
                 descElem.innerText = "Üye rolleri, hak ve boost yönetimi.";
                 let htmlList = `<div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
                 users.forEach((usr, idx) => {
-                    let isProtectedOwner = (usr.username.toLowerCase() === 'veynn' || usr.username.toLowerCase() === '/hayatsız' || (usr.role === 'OWNER' && currentUser.username.toLowerCase() !== 'veynn'));
+                    let isProtectedOwner = (usr.username.toLowerCase() === 'veynn' || usr.username.toLowerCase() === '/hayatsız');
                     
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-4 rounded-xl gap-2">
@@ -568,16 +533,10 @@
                 currentUser = users[index];
                 document.getElementById('header-query-count').innerText = currentUser.queriesLeft;
                 document.getElementById('display-role').innerText = currentUser.role;
-                if(currentUser.role === 'OWNER') {
-                    document.getElementById('owner-menu-section').classList.remove('hidden');
-                } else {
-                    document.getElementById('owner-menu-section').classList.add('hidden');
-                }
             }
 
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             switchTabContent('User Management');
-            
         }
 
         function changeUserBoost(index, boostVal) {
@@ -595,7 +554,7 @@
 
         function banUser(index) {
             if (users[index].username.toLowerCase() === 'veynn' || users[index].username.toLowerCase() === '/hayatsız') {
-                alert("Sistem sahipleri (Veynn / /Hayatsız) banlanamaz!");
+                alert("Sistem sahipleri banlanamaz!");
                 return;
             }
             bannedUsers.push(users[index].username);
