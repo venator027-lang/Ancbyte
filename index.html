@@ -115,6 +115,7 @@
                         <span id="display-username" class="block text-xs font-bold text-slate-100 leading-none">Veynn</span>
                         <span id="display-role" class="block text-[9px] text-slate-300 uppercase tracking-widest font-bold mt-0.5">OWNER</span>
                     </div>
+                    <button onclick="logout()" title="Çıkış Yap" class="ml-2 text-slate-400 hover:text-red-400 text-xs font-bold transition-colors">⏏</button>
                 </div>
             </div>
         </header>
@@ -141,7 +142,7 @@
                     </nav>
                 </div>
 
-                <!-- Sadece Owner'lara (Veynn ve /Hayatsız) Görünen Tek Çatı Altında Owner Control & Logs -->
+                <!-- Sadece Owner'lara Görünen Owner Control -->
                 <div id="owner-menu-section" class="hidden space-y-4">
                     <div>
                         <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
@@ -169,7 +170,7 @@
     </div>
 
     <script>
-        let currentUser = { username: 'Veynn', role: 'OWNER', boostCount: 3, queriesLeft: 'Sınırsız' };
+        let currentUser = null;
 
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
             { username: 'Veynn', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', info: 'Main Owner' },
@@ -179,6 +180,20 @@
         let systemLogs = JSON.parse(localStorage.getItem('ancbyte_logs')) || [
             { time: new Date().toLocaleTimeString(), user: 'Veynn', action: 'Sisteme giriş yaptı (Owner)' }
         ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('ancbyte_current_session');
+            if (savedUser) {
+                const uObj = JSON.parse(savedUser);
+                let freshUser = users.find(x => x.username === uObj.username);
+                if (freshUser) {
+                    currentUser = freshUser;
+                } else {
+                    currentUser = uObj;
+                }
+                launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
+            }
+        });
 
         function logAction(user, action) {
             systemLogs.unshift({ time: new Date().toLocaleTimeString(), user, action });
@@ -214,7 +229,6 @@
             let boost = 0;
             let limit = 1;
 
-            // Kayıtlı kullanıcılardan verisini çek
             const found = users.find(x => x.username === u);
             if (found) {
                 role = found.role;
@@ -225,6 +239,8 @@
                     role = "OWNER";
                     boost = 3;
                     limit = 'Sınırsız';
+                    users.push({ username: u, role, boost, queriesLeft: limit, info: 'Main Owner' });
+                    localStorage.setItem('ancbyte_users', JSON.stringify(users));
                 } else {
                     const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
                     users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 1, info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
@@ -233,8 +249,9 @@
             }
 
             currentUser = { username: u, role, boostCount: boost, queriesLeft: limit };
+            localStorage.setItem('ancbyte_current_session', JSON.stringify(currentUser));
             logAction(u, 'Giriş yaptı');
-            launchDashboard(u, role, limit);
+            launchDashboard(u, role, limit, false);
         }
 
         function handleRegister(e) {
@@ -255,7 +272,7 @@
             switchTab('login');
         }
 
-        function launchDashboard(username, role, limit) {
+        function launchDashboard(username, role, limit, isDirect) {
             document.getElementById('display-username').innerText = username;
             document.getElementById('display-role').innerText = role;
             document.getElementById('user-avatar').innerText = username.charAt(0).toUpperCase();
@@ -270,12 +287,23 @@
             const authContainer = document.getElementById('auth-container');
             const dashContainer = document.getElementById('dashboard-container');
             
-            authContainer.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => {
+            if (isDirect) {
                 authContainer.classList.add('hidden');
                 dashContainer.classList.remove('hidden');
-                dashContainer.classList.add('opacity-100');
-            }, 400);
+                dashContainer.classList.remove('opacity-0');
+            } else {
+                authContainer.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    authContainer.classList.add('hidden');
+                    dashContainer.classList.remove('hidden');
+                    dashContainer.classList.add('opacity-100');
+                }, 400);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('ancbyte_current_session');
+            location.reload();
         }
 
         let currentActiveTab = 'Discord';
@@ -298,6 +326,31 @@
                 
                 users.forEach((usr, idx) => {
                     let boostText = usr.boost === 0 ? 'Boost Yok (1 Hak)' : (usr.boost === 1 ? '1 Boost (30 Hak)' : (usr.boost === 2 ? '2 Boost (65 Hak)' : '3+ Boost (Sınırsız)'));
+                    
+                    // Kendi hesabınsa veya karşındaki kişi korumalı bir Owner ise (Veynn veya /Hayatsız) rol değiştirmeyi ve kicklemeyi engelle/gizle
+                    let isProtectedOwner = (usr.username === 'Veynn' || usr.username === '/Hayatsız');
+                    let isSelf = (currentUser && usr.username === currentUser.username);
+
+                    let controlsHtml = '';
+                    if (isSelf) {
+                        controlsHtml = `<span class="text-[10px] text-slate-500 font-semibold px-2 py-1 italic">(Aktif Hesabınız)</span>`;
+                    } else if (isProtectedOwner) {
+                        controlsHtml = `<span class="text-[10px] text-amber-500/80 font-semibold px-2 py-1">(Korunan Owner)</span>`;
+                    } else {
+                        controlsHtml = `
+                            <select onchange="updateUserRole(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
+                                <option value="USER" ${usr.role==='USER'?'selected':''}>USER</option>
+                                <option value="OWNER" ${usr.role==='OWNER'?'selected':''}>OWNER</option>
+                            </select>
+                            <select onchange="updateUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
+                                <option value="0" ${usr.boost==0?'selected':''}>0 Boost</option>
+                                <option value="1" ${usr.boost==1?'selected':''}>1 Boost (30)</option>
+                                <option value="2" ${usr.boost==2?'selected':''}>2 Boost (65)</option>
+                                <option value="3" ${usr.boost==3?'selected':''}>3+ Boost (Sınırsız)</option>
+                            </select>
+                            <button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Kick</button>`;
+                    }
+
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl">
                             <div>
@@ -306,17 +359,7 @@
                                 <span class="block text-[10px] text-purple-400 mt-1">Durum: ${boostText} | Kalan Hak: ${usr.queriesLeft}</span>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <select onchange="updateUserRole(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
-                                    <option value="USER" ${usr.role==='USER'?'selected':''}>USER</option>
-                                    <option value="OWNER" ${usr.role==='OWNER'?'selected':''}>OWNER</option>
-                                </select>
-                                <select onchange="updateUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
-                                    <option value="0" ${usr.boost==0?'selected':''}>0 Boost</option>
-                                    <option value="1" ${usr.boost==1?'selected':''}>1 Boost (30)</option>
-                                    <option value="2" ${usr.boost==2?'selected':''}>2 Boost (65)</option>
-                                    <option value="3" ${usr.boost==3?'selected':''}>3+ Boost (Sınırsız)</option>
-                                </select>
-                                <button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Kick</button>
+                                ${controlsHtml}
                             </div>
                         </div>`;
                 });
@@ -366,6 +409,7 @@
                     uObj.queriesLeft = currentUser.queriesLeft;
                     localStorage.setItem('ancbyte_users', JSON.stringify(users));
                 }
+                localStorage.setItem('ancbyte_current_session', JSON.stringify(currentUser));
             }
 
             logAction(currentUser.username, `${currentActiveTab} araması yaptı: ${val}`);
@@ -374,6 +418,11 @@
         }
 
         function updateUserRole(index, roleVal) {
+            let targetUser = users[index];
+            if(targetUser.username === 'Veynn' || targetUser.username === '/Hayatsız') {
+                alert("Korunan Owner hesaplarının rolleri değiştirilemez!");
+                return;
+            }
             users[index].role = roleVal;
             if(roleVal === 'OWNER') {
                 users[index].queriesLeft = 'Sınırsız';
@@ -384,6 +433,7 @@
         }
 
         function updateUserBoost(index, boostVal) {
+            let targetUser = users[index];
             let b = parseInt(boostVal);
             let limit = b === 0 ? 1 : (b === 1 ? 30 : (b === 2 ? 65 : 'Sınırsız'));
             users[index].boost = b;
@@ -394,8 +444,18 @@
         }
 
         function kickUser(index) {
-            if(confirm("Bu kullanıcıyı sistemden atmak istediğinize emin misiniz?")) {
-                let kicked = users[index].username;
+            let targetUser = users[index];
+            if(targetUser.username === 'Veynn' || targetUser.username === '/Hayatsız') {
+                alert("Hata: Korunan Owner hesapları sistemden atılamaz!");
+                return;
+            }
+            if(targetUser.username === currentUser.username) {
+                alert("Kendini sistemden atamazsın!");
+                return;
+            }
+
+            if(confirm(`Bu kullanıcıyı (${targetUser.username}) sistemden atmak istediğinize emin misiniz?`)) {
+                let kicked = targetUser.username;
                 users.splice(index, 1);
                 localStorage.setItem('ancbyte_users', JSON.stringify(users));
                 logAction(currentUser.username, `${kicked} isimli kullanıcıyı kickledi`);
