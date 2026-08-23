@@ -181,15 +181,15 @@
     <script>
         let currentUser = null;
 
-        const DB_VERSION = 'veynn_auth_v10_exclusive';
+        const DB_VERSION = 'veynn_auth_v12_ownerfix';
         if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
             localStorage.clear();
             localStorage.setItem('ancbyte_db_ver', DB_VERSION);
         }
 
         let defaultUsers = [
-            { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
-            { username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
+            { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
+            { username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
         ];
 
         let users = JSON.parse(localStorage.getItem('ancbyte_users'));
@@ -199,16 +199,24 @@
         } else {
             let veynnIndex = users.findIndex(x => x.username.toLowerCase() === 'veynn');
             if (veynnIndex !== -1) {
-                users[veynnIndex] = { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' };
+                users[veynnIndex].role = 'OWNER';
+                users[veynnIndex].queriesLeft = 'Sınırsız';
             } else {
-                users.push({ username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' });
+                users.push({ username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' });
             }
             
             let hayatsizIndex = users.findIndex(x => x.username.toLowerCase() === '/hayatsız');
             if (hayatsizIndex === -1) {
-                users.push({ username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' });
+                users.push({ username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' });
             }
             
+            // Veritabanındaki tüm OWNER kullanıcıların haklarını da garantiye alalım
+            users.forEach(u => {
+                if (u.role === 'OWNER') {
+                    u.queriesLeft = 'Sınırsız';
+                }
+            });
+
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
         }
 
@@ -244,12 +252,14 @@
         }
 
         function calculateLimitByBoost(userObj) {
+            // KESİN KURAL: Rol OWNER ise boost seviyesi 0 bile olsa sınırsız hak verir!
             if (userObj.role === 'OWNER') return 'Sınırsız';
-            const boostLevel = userObj.boost;
+            
+            const boostLevel = parseInt(userObj.boost);
             if (boostLevel >= 3) return 'Sınırsız';
             if (boostLevel === 2) return 75;
             if (boostLevel === 1) return 20;
-            return 3;
+            return 3; // Boost 0
         }
 
         function checkDailyReset(userObj) {
@@ -261,6 +271,8 @@
             }
             if (userObj.lastReset !== today) {
                 userObj.lastReset = today;
+                userObj.queriesLeft = calculateLimitByBoost(userObj);
+            } else {
                 userObj.queriesLeft = calculateLimitByBoost(userObj);
             }
         }
@@ -453,7 +465,6 @@
                 descElem.innerText = "Üye rolleri, hak ve boost yönetimi.";
                 let htmlList = `<div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
                 users.forEach((usr, idx) => {
-                    // Sadece 'Veynn' korumalı yapıldı, /Hayatsız serbest bırakıldı.
                     let isProtectedOwner = (usr.username.toLowerCase() === 'veynn');
                     
                     htmlList += `
@@ -499,7 +510,7 @@
 
         function changeUserRole(idx, newRole) {
             users[idx].role = newRole;
-            if(newRole === 'OWNER') users[idx].queriesLeft = 'Sınırsız';
+            users[idx].queriesLeft = calculateLimitByBoost(users[idx]);
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             switchTabContent('User Management');
         }
@@ -524,7 +535,7 @@
         function executeSearch(category) {
             const inputVal = document.getElementById('query-input-val').value.trim();
             if(!inputVal) {
-                alert("Lütfen bir değer girin!");
+                alert("Lütfen bir değer girin terk!");
                 return;
             }
 
