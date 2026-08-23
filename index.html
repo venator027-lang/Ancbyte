@@ -208,9 +208,10 @@
     <script>
         let currentUser = null;
 
+        // Varsayılan kullanıcılar ve şifreleri (şifreler 'password' alanında tutulur)
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
-            { username: 'Veynn', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
-            { username: '/Hayatsız', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
+            { username: 'Veynn', password: '123', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
+            { username: '/Hayatsız', password: '123', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
         ];
 
         let bannedUsers = JSON.parse(localStorage.getItem('ancbyte_banned')) || [];
@@ -319,13 +320,11 @@
             }
 
             let found = users.find(x => x.username === u);
-            if (!found) {
-                if (u === 'Veynn') {
-                    found = { username: u, role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' };
-                } else {
-                    found = { username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: 'Masaüstü' };
-                }
-                users.push(found);
+            
+            // Kullanıcı veritabanında yoksa veya şifre uyuşmuyorsa hata ver
+            if (!found || found.password !== p) {
+                alert("Hata: Geçersiz kullanıcı adı veya şifre!");
+                return;
             }
 
             checkDailyReset(found);
@@ -346,7 +345,7 @@
             if (bannedUsers.includes(u)) { alert("Banlı!"); return; }
             if(users.some(x => x.username === u)) { alert("Zaten alınmış!"); return; }
 
-            users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: 'Masaüstü' });
+            users.push({ username: u, password: p, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: 'Masaüstü' });
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             alert("Kayıt başarılı! Giriş yapabilirsiniz.");
             switchTab('login');
