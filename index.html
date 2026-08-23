@@ -182,8 +182,8 @@
         let currentUser = null;
 
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
-            { username: 'Veynn', password: '123', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
-            { username: '/Hayatsız', password: '/HayatsızΨ123', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
+            { username: 'Veynn', password: '123', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
+            { username: '/Hayatsız', password: '/HayatsızΨ123', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
         ];
 
         let bannedUsers = JSON.parse(localStorage.getItem('ancbyte_banned')) || [];
@@ -217,7 +217,11 @@
             }
         }
 
-        function calculateLimitByBoost(boostLevel) {
+        function calculateLimitByBoost(userObj) {
+            // Rol OWNER ise boost kaç olursa olsun sınırsız hak verir
+            if (userObj.role === 'OWNER') return 'Sınırsız';
+            
+            const boostLevel = userObj.boost;
             if (boostLevel >= 3) return 'Sınırsız';
             if (boostLevel === 2) return 75;
             if (boostLevel === 1) return 20;
@@ -233,7 +237,7 @@
             }
             if (userObj.lastReset !== today) {
                 userObj.lastReset = today;
-                userObj.queriesLeft = calculateLimitByBoost(userObj.boost);
+                userObj.queriesLeft = calculateLimitByBoost(userObj);
             }
         }
 
@@ -419,7 +423,6 @@
                 descElem.innerText = "Üye rolleri, hak ve boost yönetimi.";
                 let htmlList = `<div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
                 users.forEach((usr, idx) => {
-                    // Veynn ve diğer Owner'ların korunması için güvenlik kontrolü (Veynnasla banlanamaz, diğer Owner'lar da alt seviye ownerlar tarafından banlanamaz)
                     let isProtectedOwner = (usr.username === 'Veynn' || (usr.role === 'OWNER' && currentUser.username !== 'Veynn'));
                     
                     htmlList += `
@@ -493,7 +496,7 @@
             }
 
             if(!searchHistories[currentUser.username]) searchHistories[currentUser.username] = [];
-            searchHistories[currentUser.username].push({ category: currentActiveTab, query: val, time: new Date().toLocaleTimeString() });
+            searchHistories[currentUser.username].push({ category: currentActiveTab, query: val, time: new Date().toLocaleTimeString()});
             localStorage.setItem('ancbyte_history', JSON.stringify(searchHistories));
 
             const area = document.getElementById('search-results-area');
@@ -509,17 +512,33 @@
                 return;
             }
             users[index].role = roleVal;
-            if (roleVal === 'OWNER') {
-                users[index].boost = 3;
-                users[index].queriesLeft = 'Sınırsız';
+            // Rol OWNER yapıldığı an boost seviyesi ne olursa olsun haklar sınırsız olur
+            users[index].queriesLeft = calculateLimitByBoost(users[index]);
+            
+            if (currentUser.username === users[index].username) {
+                currentUser = users[index];
+                document.getElementById('header-query-count').innerText = currentUser.queriesLeft;
+                document.getElementById('display-role').innerText = currentUser.role;
+                if(currentUser.role === 'OWNER') {
+                    document.getElementById('owner-menu-section').classList.remove('hidden');
+                } else {
+                    document.getElementById('owner-menu-section').classList.add('hidden');
+                }
             }
+
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             switchTabContent('User Management');
         }
 
         function changeUserBoost(index, boostVal) {
             users[index].boost = parseInt(boostVal);
-            users[index].queriesLeft = calculateLimitByBoost(users[index].boost);
+            users[index].queriesLeft = calculateLimitByBoost(users[index]);
+
+            if (currentUser.username === users[index].username) {
+                currentUser = users[index];
+                document.getElementById('header-query-count').innerText = currentUser.queriesLeft;
+            }
+
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             switchTabContent('User Management');
         }
