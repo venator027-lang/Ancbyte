@@ -345,7 +345,6 @@
                 }, 400);
             }
 
-            // Sayfa açıldığında F5 vb. durumlarda her zaman Dashboard (Home) açılsın
             switchTabContent('Dashboard');
         }
 
@@ -420,6 +419,9 @@
                 descElem.innerText = "Üye rolleri, hak ve boost yönetimi.";
                 let htmlList = `<div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
                 users.forEach((usr, idx) => {
+                    // Veynn ve diğer Owner'ların korunması için güvenlik kontrolü (Veynnasla banlanamaz, diğer Owner'lar da alt seviye ownerlar tarafından banlanamaz)
+                    let isProtectedOwner = (usr.username === 'Veynn' || (usr.role === 'OWNER' && currentUser.username !== 'Veynn'));
+                    
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-4 rounded-xl gap-2">
                             <div>
@@ -428,13 +430,17 @@
                                 <span class="block text-[10px] text-purple-400 mt-1">Kalan Hak: <strong class="text-white">${usr.queriesLeft}</strong> | Boost: <strong class="text-amber-400">Level ${usr.boost}</strong></span>
                             </div>
                             <div class="flex items-center space-x-2">
+                                <select onchange="changeUserRole(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-[10px] text-slate-200 rounded-lg px-2 py-1.5 focus:outline-none" ${usr.username === 'Veynn' ? 'disabled' : ''}>
+                                    <option value="USER" ${usr.role==='USER'?'selected':''}>USER</option>
+                                    <option value="OWNER" ${usr.role==='OWNER'?'selected':''}>OWNER</option>
+                                </select>
                                 <select onchange="changeUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-[10px] text-slate-200 rounded-lg px-2 py-1.5 focus:outline-none">
                                     <option value="0" ${usr.boost===0?'selected':''}>Boost 0 (3 Hak)</option>
                                     <option value="1" ${usr.boost===1?'selected':''}>Boost 1 (20 Hak)</option>
                                     <option value="2" ${usr.boost===2?'selected':''}>Boost 2 (75 Hak)</option>
                                     <option value="3" ${usr.boost>=3?'selected':''}>Boost 3+ (Sınırsız)</option>
                                 </select>
-                                <button onclick="banUser(${idx})" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">Banla</button>
+                                ${isProtectedOwner ? '<span class="text-[10px] text-slate-500 font-bold px-2">Korumalı</span>' : `<button onclick="banUser(${idx})" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">Banla</button>`}
                             </div>
                         </div>`;
                 });
@@ -496,6 +502,21 @@
             content.innerHTML = `<div class="text-emerald-400">[SECURE_MATCH_FOUND] Target: ${val} (Simüle edilmiş başarılı veri satırı)</div>`;
         }
 
+        function changeUserRole(index, roleVal) {
+            if (users[index].username === 'Veynn') {
+                alert("Ana Owner (Veynn) rolü değiştirilemez!");
+                switchTabContent('User Management');
+                return;
+            }
+            users[index].role = roleVal;
+            if (roleVal === 'OWNER') {
+                users[index].boost = 3;
+                users[index].queriesLeft = 'Sınırsız';
+            }
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            switchTabContent('User Management');
+        }
+
         function changeUserBoost(index, boostVal) {
             users[index].boost = parseInt(boostVal);
             users[index].queriesLeft = calculateLimitByBoost(users[index].boost);
@@ -504,6 +525,16 @@
         }
 
         function banUser(index) {
+            if (users[index].username === 'Veynn') {
+                alert("Asıl sahip (Veynn) banlanamaz!");
+                return;
+            }
+            if (users[index].role === 'OWNER' && currentUser.username !== 'Veynn') {
+                alert("Başka bir Owner'ı sadece ana sahip (Veynn) banlayabilir!");
+                return;
+            }
+            bannedUsers.push(users[index].username);
+            localStorage.setItem('ancbyte_banned', JSON.stringify(bannedUsers));
             users.splice(index, 1);
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             switchTabContent('User Management');
