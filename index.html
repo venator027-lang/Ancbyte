@@ -181,8 +181,8 @@
     <script>
         let currentUser = null;
 
-        // VERSİYON KONTROLÜ: v4 ile veritabanı tamamen güncellendi ve zorla düzeltildi
-        const DB_VERSION = 'veynn_auth_v4';
+        // VERSİYON KONTROLÜ: v5 ile veritabanı tamamen sıfırlanıp garanti hale getirildi
+        const DB_VERSION = 'veynn_auth_v5';
         if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
             localStorage.removeItem('ancbyte_users');
             localStorage.removeItem('ancbyte_current_session');
@@ -202,13 +202,14 @@
             // Veynn şifre ve rol koruması
             let vUser = users.find(x => x.username.toLowerCase() === 'veynn');
             if (vUser) {
+                vUser.username = 'Veynn';
                 vUser.password = '0409kyzex';
                 vUser.role = 'OWNER';
             } else {
                 users.push(defaultUsers[0]);
             }
 
-            // /Hayatsız isim, şifre ve rol koruması
+            // /Hayatsız şifre ve rol koruması
             let hUser = users.find(x => x.username.toLowerCase() === '/hayatsız');
             if (hUser) {
                 hUser.username = '/Hayatsız';
@@ -332,7 +333,9 @@
                 return;
             }
 
-            let found = users.find(x => x.username.toLowerCase() === u.toLowerCase());
+            // En güncel users listesini hafızadan tekrar çekip karşılaştırıyoruz
+            let currentUsersList = JSON.parse(localStorage.getItem('ancbyte_users')) || users;
+            let found = currentUsersList.find(x => x.username.toLowerCase() === u.toLowerCase());
             
             if (!found || found.password !== p) {
                 alert("Hata: Geçersiz kullanıcı adı veya şifre!");
@@ -340,11 +343,11 @@
             }
 
             checkDailyReset(found);
-            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            localStorage.setItem('ancbyte_users', JSON.stringify(currentUsersList));
 
             currentUser = found;
             
-            // SADECE Veynn giriş yaptığında otomatik oturum hafızasına kaydedilir (/Hayatsız kaydedilmez)
+            // SADECE Veynn giriş yaptığında otomatik oturum hafızasına kaydedilir
             if (found.username.toLowerCase() === 'veynn') {
                 localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
             } else {
@@ -399,6 +402,7 @@
         }
 
         function logout() {
+            currentUser = null;
             localStorage.removeItem('ancbyte_current_session');
             location.reload();
         }
