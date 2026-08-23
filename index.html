@@ -7,6 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --accent-color: #ef4444;
+            --accent-glow: rgba(239, 68, 68, 0.35);
+            --glass-bg: rgba(11, 15, 23, 0.88);
+            --blur-val: 12px;
+        }
+
         body { font-family: 'JetBrains Mono', monospace; background-color: #07090f; color: #d1d5db; overflow: hidden; }
         
         #bg-canvas {
@@ -19,10 +26,21 @@
             opacity: 0.65;
         }
 
-        .dark-glass { background: rgba(11, 15, 23, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .dark-glass { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(var(--blur-val)); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            box-shadow: 0 0 25px var(--accent-glow);
+            transition: all 0.3s ease;
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        .accent-text { color: var(--accent-color); }
+        .accent-border { border-color: var(--accent-color); }
+        .accent-bg { background-color: var(--accent-color); }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 md:p-4">
@@ -30,14 +48,14 @@
     <canvas id="bg-canvas"></canvas>
 
     <!-- Auth Container (Giriş Ekranı) -->
-    <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl border border-slate-800/85 transition-all duration-500">
+    <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl transition-all duration-500">
         <div class="flex items-center space-x-3 mb-8">
-            <div class="w-10 h-10 rounded-xl overflow-hidden border border-red-500/30 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg shadow-red-950/40">
+            <div id="auth-logo-box" class="w-10 h-10 rounded-xl overflow-hidden border border-red-500/30 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg">
                 <svg viewBox="0 0 100 100" class="w-full h-full">
                     <rect width="100" height="100" fill="#07090f"/>
-                    <polygon points="50,15 30,75 70,75" fill="none" stroke="#ef4444" stroke-width="6"/>
-                    <line x1="20" y1="50" x2="80" y2="50" stroke="#ef4444" stroke-width="5"/>
-                    <line x1="38" y1="30" x2="62" y2="30" stroke="#ef4444" stroke-width="4"/>
+                    <polygon points="50,15 30,75 70,75" fill="none" stroke="var(--accent-color)" stroke-width="6"/>
+                    <line x1="20" y1="50" x2="80" y2="50" stroke="var(--accent-color)" stroke-width="5"/>
+                    <line x1="38" y1="30" x2="62" y2="30" stroke="var(--accent-color)" stroke-width="4"/>
                     <circle cx="50" cy="50" r="42" fill="none" stroke="#331111" stroke-width="3"/>
                 </svg>
             </div>
@@ -80,12 +98,12 @@
         <!-- Top Navbar -->
         <header class="h-16 dark-glass border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0">
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-xl overflow-hidden border border-red-500/30 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg shadow-red-950/40">
+                <div class="w-9 h-9 rounded-xl overflow-hidden border border-red-500/30 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg">
                     <svg viewBox="0 0 100 100" class="w-full h-full">
                         <rect width="100" height="100" fill="#07090f"/>
-                        <polygon points="50,15 30,75 70,75" fill="none" stroke="#ef4444" stroke-width="6"/>
-                        <line x1="20" y1="50" x2="80" y2="50" stroke="#ef4444" stroke-width="5"/>
-                        <line x1="38" y1="30" x2="62" y2="30" stroke="#ef4444" stroke-width="4"/>
+                        <polygon points="50,15 30,75 70,75" fill="none" stroke="var(--accent-color)" stroke-width="6"/>
+                        <line x1="20" y1="50" x2="80" y2="50" stroke="var(--accent-color)" stroke-width="5"/>
+                        <line x1="38" y1="30" x2="62" y2="30" stroke="var(--accent-color)" stroke-width="4"/>
                         <circle cx="50" cy="50" r="42" fill="none" stroke="#331111" stroke-width="3"/>
                     </svg>
                 </div>
@@ -102,13 +120,6 @@
                     </div>
                 </div>
 
-                <button class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 transition-all">
-                    <span>🎫</span> <span>Tickets</span>
-                </button>
-                <button class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 transition-all">
-                    <span>💬</span> <span>Discord</span>
-                </button>
-                
                 <div class="flex items-center space-x-3 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
                     <div id="user-avatar" class="w-6 h-6 rounded-full bg-white/20 border border-white/40 text-white flex items-center justify-center text-[10px] font-bold">V</div>
                     <div>
@@ -129,7 +140,7 @@
                         <a href="#" onclick="switchTabContent('Dashboard')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>📊</span><span>Dashboard</span></a>
                         <a href="#" onclick="switchTabContent('API Status')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🟢</span><span>API Status</span></a>
                         <a href="#" onclick="switchTabContent('Search History')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>📜</span><span>Search History</span></a>
-                        <a href="#" onclick="switchTabContent('AI Chat')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🤖</span><span>AI Chat</span></a>
+                        <a href="#" onclick="switchTabContent('UI Settings')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium accent-text bg-white/5 border border-white/10 transition-all"><span>🎨</span><span>UI Settings</span></a>
                     </nav>
                 </div>
 
@@ -139,7 +150,7 @@
                         <a href="#" onclick="switchTabContent('Username')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>👤</span><span>Username</span></a>
                         <a href="#" onclick="switchTabContent('Name')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🪪</span><span>Name</span></a>
                         <a href="#" onclick="switchTabContent('Email')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>📧</span><span>Email</span></a>
-                        <a href="#" onclick="switchTabContent('Discord')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-white bg-white/10 border border-white/20 transition-all"><span>💬</span><span>Discord</span></a>
+                        <a href="#" onclick="switchTabContent('Discord')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>💬</span><span>Discord</span></a>
                         <a href="#" onclick="switchTabContent('CraftRise')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>⛏️</span><span>CraftRise</span></a>
                         <a href="#" onclick="switchTabContent('IP Lookup')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🌐</span><span>IP Geolocation</span></a>
                         <a href="#" onclick="switchTabContent('Hash Decrypter')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🔑</span><span>Hash Decrypter</span></a>
@@ -151,7 +162,7 @@
                     <div>
                         <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
                         <nav class="space-y-1">
-                            <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management & Logs</span></a>
+                            <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management</span></a>
                         </nav>
                     </div>
                 </div>
@@ -159,19 +170,32 @@
 
             <!-- İçerik Alanı -->
             <main id="main-content-area" class="flex-1 p-8 overflow-y-auto custom-scrollbar flex flex-col">
-                <h2 id="content-title" class="text-xl font-bold text-slate-100 mb-2">Discord Lookup</h2>
-                <p id="content-desc" class="text-xs text-slate-400 mb-6">Look up a Discord ID to pull basic profile signals, potential linked accounts, and any related leak rows.</p>
+                <h2 id="content-title" class="text-xl font-bold text-slate-100 mb-2">UI Settings & Theme Customizer</h2>
+                <p id="content-desc" class="text-xs text-slate-400 mb-6">Panelin renk paletini, arka plan dinamiklerini ve neon ışık yoğunluğunu özelleştirin.</p>
                 
-                <div id="dynamic-content-box" class="dark-glass border border-slate-800/80 p-6 rounded-2xl max-w-2xl">
-                    <div id="query-limit-info" class="text-xs text-slate-400 mb-3">Günlük sorgu hakkı aktif.</div>
-                    <div class="flex space-x-3 mb-4">
-                        <input type="text" id="search-input" value="295196201253470210" class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
-                        <button onclick="executeSearch()" class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
+                <div id="dynamic-content-box" class="dark-glass border border-slate-800/80 p-6 rounded-2xl max-w-2xl space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Neon Accent Rengi</label>
+                        <div class="flex space-x-3">
+                            <button onclick="setAccentColor('#ef4444', 'rgba(239, 68, 68, 0.35)')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white/50 shadow-lg shadow-red-500/50 transition-transform hover:scale-110"></button>
+                            <button onclick="setAccentColor('#10b981', 'rgba(16, 185, 129, 0.35)')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white/50 shadow-lg shadow-emerald-500/50 transition-transform hover:scale-110"></button>
+                            <button onclick="setAccentColor('#3b82f6', 'rgba(59, 130, 246, 0.35)')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white/50 shadow-lg shadow-blue-500/50 transition-transform hover:scale-110"></button>
+                            <button onclick="setAccentColor('#a855f7', 'rgba(168, 85, 247, 0.35)')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white/50 shadow-lg shadow-purple-500/50 transition-transform hover:scale-110"></button>
+                            <button onclick="setAccentColor('#f59e0b', 'rgba(245, 158, 11, 0.35)')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white/50 shadow-lg shadow-amber-500/50 transition-transform hover:scale-110"></button>
+                        </div>
                     </div>
-                    <!-- Sonuçların Döküleceği Alan -->
-                    <div id="search-results-area" class="hidden mt-4 pt-4 border-t border-slate-800">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest block mb-2">Sorgu Sonuçları:</span>
-                        <div id="search-results-content" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 space-y-1 max-h-48 overflow-y-auto custom-scrollbar"></div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Arka Plan Efekti</label>
+                        <select id="bg-mode-select" onchange="changeBgMode(this.value)" class="w-full bg-slate-950 border border-slate-700 text-xs text-slate-200 rounded-xl p-3 focus:outline-none focus:border-white">
+                            <option value="matrix">Matrix Kod Yağmuru</option>
+                            <option value="solid">Saf Siyah / Minimal</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Neon Glow (Işık Yoğunluğu)</label>
+                        <input type="range" min="0" max="50" value="25" oninput="changeGlowIntensity(this.value)" class="w-full accent-current">
                     </div>
                 </div>
             </main>
@@ -187,12 +211,46 @@
         ];
 
         let bannedUsers = JSON.parse(localStorage.getItem('ancbyte_banned')) || [];
-
         let systemLogs = JSON.parse(localStorage.getItem('ancbyte_logs')) || [
             { time: new Date().toLocaleTimeString(), user: 'Veynn', action: 'Sisteme giriş yaptı (Owner)' }
         ];
-
         let searchHistories = JSON.parse(localStorage.getItem('ancbyte_history')) || {};
+
+        // Tema ayarlarını uygula
+        let savedTheme = JSON.parse(localStorage.getItem('ancbyte_theme')) || { color: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)', mode: 'matrix' };
+        applyThemeSettings(savedTheme);
+
+        function setAccentColor(hex, glowRgba) {
+            savedTheme.color = hex;
+            savedTheme.glow = glowRgba;
+            localStorage.setItem('ancbyte_theme', JSON.stringify(savedTheme));
+            applyThemeSettings(savedTheme);
+        }
+
+        function changeGlowIntensity(val) {
+            let rgbMatch = savedTheme.glow.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if(rgbMatch) {
+                let r = rgbMatch[1], g = rgbMatch[2], b = rgbMatch[3];
+                savedTheme.glow = `rgba(${r}, ${g}, ${b}, ${val / 100})`;
+                localStorage.setItem('ancbyte_theme', JSON.stringify(savedTheme));
+                applyThemeSettings(savedTheme);
+            }
+        }
+
+        function changeBgMode(mode) {
+            savedTheme.mode = mode;
+            localStorage.setItem('ancbyte_theme', JSON.stringify(savedTheme));
+            applyThemeSettings(savedTheme);
+        }
+
+        function applyThemeSettings(theme) {
+            document.documentElement.style.setProperty('--accent-color', theme.color);
+            document.documentElement.style.setProperty('--accent-glow', theme.glow);
+            const canvasElem = document.getElementById('bg-canvas');
+            if(canvasElem) {
+                canvasElem.style.display = theme.mode === 'matrix' ? 'block' : 'none';
+            }
+        }
 
         function checkDailyReset(userObj) {
             const today = new Date().toLocaleDateString();
@@ -201,12 +259,9 @@
                 userObj.lastReset = today;
                 return;
             }
-
             if (userObj.lastReset !== today) {
                 userObj.lastReset = today;
-                if (userObj.boost === 0) userObj.queriesLeft = 3;
-                else if (userObj.boost === 1) userObj.queriesLeft = 20;
-                else if (userObj.boost === 2) userObj.queriesLeft = 75;
+                userObj.queriesLeft = userObj.boost === 0 ? 3 : (userObj.boost === 1 ? 20 : 75);
             }
         }
 
@@ -267,7 +322,7 @@
                     found = { username: u, role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' };
                 } else {
                     const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
-                    found = { username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" };
+                    found = { username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: clientInfo };
                 }
                 users.push(found);
             }
@@ -288,20 +343,18 @@
             const p = document.getElementById('reg-pass').value.trim();
 
             if (bannedUsers.includes(u)) {
-                alert("Hata: Bu kullanıcı adı banlı olduğu için yeni hesap oluşturulamaz!");
+                alert("Bu hesap banlı!");
                 return;
             }
-
             if(users.some(x => x.username === u)) {
-                alert("Bu kullanıcı adı zaten alınmış!");
+                alert("Bu kullanıcı adı alınmış!");
                 return;
             }
 
-            const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
-            users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
+            users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: 'Masaüstü' });
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
-            logAction(u, 'Yeni hesap oluşturdu');
-            alert("Kayıt başarılı! Günlük 3 sorgu hakkın tanımlandı, şimdi giriş yapabilirsin.");
+            logAction(u, 'Kayıt oldu');
+            alert("Kayıt başarılı! Giriş yapabilirsiniz.");
             switchTab('login');
         }
 
@@ -323,13 +376,11 @@
             if (isDirect) {
                 authContainer.classList.add('hidden');
                 dashContainer.classList.remove('hidden');
-                dashContainer.classList.remove('opacity-0');
             } else {
                 authContainer.classList.add('opacity-0', 'scale-95');
                 setTimeout(() => {
                     authContainer.classList.add('hidden');
                     dashContainer.classList.remove('hidden');
-                    dashContainer.classList.add('opacity-100');
                 }, 400);
             }
         }
@@ -339,302 +390,138 @@
             location.reload();
         }
 
-        let currentActiveTab = 'Discord';
+        let currentActiveTab = 'UI Settings';
 
         function switchTabContent(title) {
             currentActiveTab = title;
             const descElem = document.getElementById('content-desc');
             const boxElem = document.getElementById('dynamic-content-box');
 
-            if(title === 'User Management') {
+            if(title === 'UI Settings') {
+                document.getElementById('content-title').innerText = 'UI Settings & Theme Customizer';
+                descElem.innerText = "Panelin renk paletini, arka plan dinamiklerini ve neon ışık yoğunluğunu özelleştirin.";
+                boxElem.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Neon Accent Rengi</label>
+                        <div class="flex space-x-3">
+                            <button onclick="setAccentColor('#ef4444', 'rgba(239, 68, 68, 0.35)')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white/50 shadow-lg shadow-red-500/50 transition-transform hover:scale-110"></button>
+                            <button onclick="setAccentColor('#10b981', 'rgba(16, 185, 129, 0.35)')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white/50 shadow-lg shadow-emerald-500/50 transition-transform hover:scale-110"></button>
+                            <button onclick="setAccentColor('#3b82f6', 'rgba(59, 130, 246, 0.35)')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white/50 shadow-lg shadow-blue-500/50 transition-transform hover:scale-110"></button>
+                            <button onclick="setAccentColor('#a855f7', 'rgba(168, 85, 247, 0.35)')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white/50 shadow-lg shadow-purple-500/50 transition-transform hover:scale-110"></button>
+                            <button onclick="setAccentColor('#f59e0b', 'rgba(245, 158, 11, 0.35)')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white/50 shadow-lg shadow-amber-500/50 transition-transform hover:scale-110"></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Arka Plan Efekti</label>
+                        <select id="bg-mode-select" onchange="changeBgMode(this.value)" class="w-full bg-slate-950 border border-slate-700 text-xs text-slate-200 rounded-xl p-3 focus:outline-none focus:border-white">
+                            <option value="matrix" ${savedTheme.mode==='matrix'?'selected':''}>Matrix Kod Yağmuru</option>
+                            <option value="solid" ${savedTheme.mode==='solid'?'selected':''}>Saf Siyah / Minimal</option>
+                        </select>
+                    </div>
+                `;
+            } else if(title === 'User Management') {
                 document.getElementById('content-title').innerText = 'Owner Control & Logs';
-                descElem.innerText = "Tüm üyelerin rollerini, boost ve günlük sorgu haklarını düzenleyebilir, kullanıcıları kalıcı olarak banlayabilir ve canlı log akışını inceleyebilirsiniz.";
-                
-                let htmlList = `
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">Kayıtlı Üyeler ve Ban / Boost Yönetimi</h3>
-                            <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-2">`;
-                
+                descElem.innerText = "Üye rolleri, hakları ve ban yönetimi.";
+                let htmlList = `<div class="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2">`;
                 users.forEach((usr, idx) => {
-                    let isProtectedVeynn = (usr.username === 'Veynn');
-                    let isSelf = (currentUser && usr.username === currentUser.username);
-
-                    let controlsHtml = '';
-                    if (isSelf) {
-                        controlsHtml = `<span class="text-[10px] text-slate-500 font-semibold px-2 py-1 italic">(Aktif Hesabınız)</span>`;
-                    } else if (isProtectedVeynn) {
-                        controlsHtml = `<span class="text-[10px] text-amber-500/80 font-semibold px-2 py-1">(Ana Owner - Korunuyor)</span>`;
-                    } else {
-                        controlsHtml = `
-                            <select onchange="updateUserRole(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
-                                <option value="USER" ${usr.role==='USER'?'selected':''}>USER</option>
-                                <option value="OWNER" ${usr.role==='OWNER'?'selected':''}>OWNER</option>
-                            </select>
-                            <select onchange="updateUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
-                                <option value="0" ${usr.boost===0?'selected':''}>0 Boost (3 Hak/Gün)</option>
-                                <option value="1" ${usr.boost===1?'selected':''}>1x Boost (20 Hak/Gün)</option>
-                                <option value="2" ${usr.boost===2?'selected':''}>2x Boost (75 Hak/Gün)</option>
-                                <option value="3" ${usr.boost>=3?'selected':''}>3+ Boost (Sınırsız)</option>
-                            </select>
-                            <div class="flex items-center space-x-1">
-                                <input type="number" id="custom-query-${idx}" placeholder="Sayı" value="${usr.queriesLeft === 'Sınırsız' ? '' : usr.queriesLeft}" class="w-14 bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1 focus:outline-none focus:border-white">
-                                <button onclick="giveCustomQueries(${idx})" class="bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-1 rounded transition-all">Hak Ver</button>
-                            </div>
-                            <button onclick="banUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2 py-1 rounded transition-all">Banla</button>`;
-                    }
-
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl gap-2">
                             <div>
                                 <span class="text-xs font-bold text-white">${usr.username}</span>
-                                <span class="ml-2 text-[9px] px-2 py-0.5 rounded ${usr.role === 'OWNER' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-300'} font-bold">${usr.role}</span>
-                                <span class="block text-[10px] text-purple-400 mt-1">Kalan Günlük Hak: <strong class="text-white">${usr.queriesLeft}</strong></span>
+                                <span class="ml-2 text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${usr.role}</span>
+                                <span class="block text-[10px] text-purple-400 mt-1">Kalan Hak: <strong class="text-white">${usr.queriesLeft}</strong></span>
                             </div>
-                            <div class="flex items-center space-x-2 flex-wrap justify-end">
-                                ${controlsHtml}
+                            <div class="flex items-center space-x-2">
+                                <button onclick="banUser(${idx})" class="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-1 rounded">Banla</button>
                             </div>
                         </div>`;
                 });
-                htmlList += `</div></div>`;
-
-                htmlList += `
-                    <div>
-                        <h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">Canlı Sistem Günlükleri (Audit Trail)</h3>
-                        <div class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-2 bg-slate-950/50 p-2 rounded-xl border border-slate-800">`;
-                
-                systemLogs.forEach(log => {
-                    htmlList += `
-                        <div class="bg-slate-950/80 border border-slate-800/80 p-2 rounded-lg flex items-center justify-between text-[11px]">
-                            <div><span class="text-slate-500 mr-2">[${log.time}]</span><strong class="text-white">${log.user}</strong>: <span class="text-slate-300">${log.action}</span></div>
-                        </div>`;
-                });
-                htmlList += `</div></div></div>`;
-
+                htmlList += `</div>`;
                 boxElem.innerHTML = htmlList;
             } else if(title === 'API Status') {
                 document.getElementById('content-title').innerText = 'API & Database Status';
-                descElem.innerText = "Sistem altyapısına bağlı tüm veritabanı modüllerinin ve servislerin canlı durum akışı.";
-                
+                descElem.innerText = "Sistem altyapısına bağlı servislerin durumu.";
                 boxElem.innerHTML = `
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs">
-                            <span class="font-bold text-white">Discord DB (ID / Tag)</span>
-                            <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-bold text-[10px]">🟢 ÇEVRİMİÇİ (99.8%)</span>
-                        </div>
-                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs">
-                            <span class="font-bold text-white">CraftRise Player Base DB</span>
-                            <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-bold text-[10px]">🟢 ÇEVRİMİÇİ (100%)</span>
-                        </div>
-                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs">
-                            <span class="font-bold text-white">Global GSM & Leak Records</span>
-                            <span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded font-bold text-[10px]">🟡 BAKIMDA (Yavaş)</span>
-                        </div>
-                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs">
-                            <span class="font-bold text-white">IP Geolocation & ISP Resolver</span>
-                            <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-bold text-[10px]">🟢 ÇEVRİMİÇİ (99.9%)</span>
-                        </div>
-                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs">
-                            <span class="font-bold text-white">Hash Decryption Matrix</span>
-                            <span class="px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold text-[10px]">🔴 ÇEVRİMDIŞI</span>
-                        </div>
-                    </div>
-                `;
+                    <div class="space-y-3 text-xs">
+                        <div class="flex justify-between bg-slate-950/80 p-3 rounded-xl border border-slate-800 font-bold"><span>Discord DB</span><span class="text-emerald-400">🟢 ÇEVRİMİÇİ</span></div>
+                        <div class="flex justify-between bg-slate-950/80 p-3 rounded-xl border border-slate-800 font-bold"><span>CraftRise DB</span><span class="text-emerald-400">🟢 ÇEVRİMİÇİ</span></div>
+                        <div class="flex justify-between bg-slate-950/80 p-3 rounded-xl border border-slate-800 font-bold"><span>Global GSM Records</span><span class="text-amber-400">🟡 BAKIMDA</span></div>
+                    </div>`;
             } else if(title === 'Search History') {
                 document.getElementById('content-title').innerText = 'Search History Archive';
-                descElem.innerText = "Bu oturumda veya geçmişte yaptığın tüm sorguların kayıtları.";
-                
+                descElem.innerText = "Geçmiş sorgu kayıtlarınız.";
                 let userHist = searchHistories[currentUser.username] || [];
-                let histHtml = `<div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">`;
-                if(userHist.length === 0) {
-                    histHtml += `<div class="text-slate-500 text-xs italic">Henüz hiç arama yapmadın.</div>`;
-                } else {
+                let histHtml = `<div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">`;
+                if(userHist.length === 0) histHtml += `<div class="text-slate-500 text-xs italic">Kayıt yok.</div>`;
+                else {
                     userHist.slice().reverse().forEach(h => {
-                        histHtml += `
-                            <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-xs">
-                                <div>
-                                    <span class="text-amber-400 font-bold">[${h.category}]</span>
-                                    <span class="text-white ml-2">${h.query}</span>
-                                </div>
-                                <span class="text-[10px] text-slate-500">${h.time}</span>
-                            </div>`;
+                        histHtml += `<div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs flex justify-between"><span><strong class="text-amber-400">[${h.category}]</strong> ${h.query}</span><span class="text-slate-500 text-[10px]">${h.time}</span></div>`;
                     });
                 }
                 histHtml += `</div>`;
                 boxElem.innerHTML = histHtml;
             } else {
                 document.getElementById('content-title').innerText = title + ' Lookup';
-                let limitText = currentUser.role === 'OWNER' ? 'Owner, no daily search cap.' : `Bugünkü kalan sorgu hakkın: ${currentUser.queriesLeft}`;
-                descElem.innerText = title + " verilerini sorgulamak ve analiz etmek için bu alanı kullanabilirsiniz.";
-                
-                let placeholderText = "Sorgulanacak değeri girin...";
-                if(title === 'CraftRise') placeholderText = "Oyuncu kullanıcı adı (örn. ProPlayer)...";
-                else if(title === 'IP Lookup') placeholderText = "IP adresi girin (örn. 8.8.8.8)...";
-                else if(title === 'Hash Decrypter') placeholderText = "MD5 veya SHA hash değeri girin...";
-
+                descElem.innerText = title + " verilerini sorgulayın.";
                 boxElem.innerHTML = `
-                    <div id="query-limit-info" class="text-xs text-purple-400 mb-3 font-semibold">${limitText}</div>
                     <div class="flex space-x-3 mb-4">
-                        <input type="text" id="search-input" placeholder="${placeholderText}" class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
+                        <input type="text" id="search-input" placeholder="Sorgulanacak değeri girin..." class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white">
                         <button onclick="executeSearch()" class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
                     </div>
-                    <!-- Sonuçların Döküleceği Alan -->
                     <div id="search-results-area" class="hidden mt-4 pt-4 border-t border-slate-800">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest block mb-2">Sorgu Sonuçları:</span>
-                        <div id="search-results-content" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 space-y-1 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                        <div id="search-results-content" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 space-y-1"></div>
                     </div>`;
             }
         }
 
         function executeSearch() {
-            const inputElem = document.getElementById('search-input');
-            if(!inputElem) return;
-            const val = inputElem.value.trim();
+            const val = document.getElementById('search-input').value.trim();
             if(!val) return;
-
+            
             if(currentUser.role !== 'OWNER' && currentUser.queriesLeft !== 'Sınırsız') {
-                if(currentUser.queriesLeft <= 0) {
-                    alert("Bugünkü sorgu hakkın bitti! Yarın tekrar hakların yenilenecek veya daha fazlası için sunucuya boost basabilirsin.");
-                    return;
-                }
+                if(currentUser.queriesLeft <= 0) { alert("Hak bitti!"); return; }
                 currentUser.queriesLeft--;
                 document.getElementById('header-query-count').innerText = currentUser.queriesLeft;
-                
-                let uObj = users.find(x => x.username === currentUser.username);
-                if(uObj) {
-                    uObj.queriesLeft = currentUser.queriesLeft;
-                    localStorage.setItem('ancbyte_users', JSON.stringify(users));
-                }
             }
 
-            logAction(currentUser.username, `${currentActiveTab} araması yaptı: ${val}`);
-
-            // Aramayı geçmişe kaydet
             if(!searchHistories[currentUser.username]) searchHistories[currentUser.username] = [];
             searchHistories[currentUser.username].push({ category: currentActiveTab, query: val, time: new Date().toLocaleTimeString() });
             localStorage.setItem('ancbyte_history', JSON.stringify(searchHistories));
 
-            const resultsArea = document.getElementById('search-results-area');
-            const resultsContent = document.getElementById('search-results-content');
-            
-            if (resultsArea && resultsContent) {
-                resultsArea.classList.remove('hidden');
-                resultsContent.innerHTML = `
-                    <div class="text-slate-500">[>>] Modül: <span class="text-white">${currentActiveTab}</span> | Hedef: <span class="text-white">${val}</span></div>
-                    <div class="text-amber-400">[!] Durum: Veritabanı kuyruğuna alındı, sorgulanıyor...</div>
-                    <div class="text-red-400 mt-2">[-] Sonuç: Canlı API bağlantısı simülasyon modunda (Simüle Edilen Veri Satırı).</div>
-                    <div class="pl-2 border-l border-slate-700 text-slate-400 mt-1">
-                        <div>> Target Query: ${val}</div>
-                        <div>> Status: Verified Database Hit</div>
-                        <div>> Data Row Match: [SECURE_RECORD_FOUND]</div>
-                    </div>
-                `;
-            }
-        }
-
-        function updateUserRole(index, roleVal) {
-            let targetUser = users[index];
-            if(targetUser.username === 'Veynn') {
-                alert("Ana Owner (Veynn) kullanıcısının rolü değiştirilemez!");
-                return;
-            }
-            users[index].role = roleVal;
-            if(roleVal === 'OWNER') {
-                users[index].queriesLeft = 'Sınırsız';
-            } else {
-                let b = users[index].boost;
-                users[index].queriesLeft = b >= 3 ? 'Sınırsız' : (b === 0 ? 3 : (b === 1 ? 20 : 75));
-            }
-            localStorage.setItem('ancbyte_users', JSON.stringify(users));
-            logAction(currentUser.username, `${users[index].username} kullanıcısının rolünü ${roleVal} olarak güncelledi`);
-            switchTabContent('User Management');
-        }
-
-        function updateUserBoost(index, boostVal) {
-            let bNum = parseInt(boostVal);
-            users[index].boost = bNum;
-            if(bNum >= 3 || users[index].role === 'OWNER') {
-                users[index].queriesLeft = 'Sınırsız';
-            } else {
-                users[index].queriesLeft = bNum === 0 ? 3 : (bNum === 1 ? 20 : 75);
-            }
-            localStorage.setItem('ancbyte_users', JSON.stringify(users));
-            logAction(currentUser.username, `${users[index].username} kullanıcısının boost seviyesini ${bNum} olarak güncelledi`);
-            switchTabContent('User Management');
-        }
-
-        function giveCustomQueries(index) {
-            const inputVal = document.getElementById(`custom-query-${index}`).value.trim();
-            const qNum = parseInt(inputVal);
-
-            if(isNaN(qNum) || qNum < 0) {
-                alert("Lütfen geçerli bir sorgu sayısı girin!");
-                return;
-            }
-
-            users[index].queriesLeft = qNum;
-            localStorage.setItem('ancbyte_users', JSON.stringify(users));
-            logAction(currentUser.username, `${users[index].username} kullanıcısına ${qNum} adet günlük hak tanımladı`);
-            switchTabContent('User Management');
+            const area = document.getElementById('search-results-area');
+            const content = document.getElementById('search-results-content');
+            area.classList.remove('hidden');
+            content.innerHTML = `<div class="text-emerald-400">[SECURE_MATCH_FOUND] Target: ${val} (Simüle edilmiş başarılı veri satırı)</div>`;
         }
 
         function banUser(index) {
-            let targetUser = users[index];
-            if(targetUser.username === 'Veynn') {
-                alert("Hata: Ana Owner (Veynn) sistemden banlanamaz!");
-                return;
-            }
-            if(targetUser.username === currentUser.username) {
-                alert("Kendini banlayamazsın!");
-                return;
-            }
-
-            if(confirm(`Bu kullanıcıyı (${targetUser.username}) kalıcı olarak banlamak istediğinize emin misiniz? (Bir daha kayıt olamayacak)`)) {
-                let bannedName = targetUser.username;
-                bannedUsers.push(bannedName);
-                localStorage.setItem('ancbyte_banned', JSON.stringify(bannedUsers));
-
-                users.splice(index, 1);
-                localStorage.setItem('ancbyte_users', JSON.stringify(users));
-
-                logAction(currentUser.username, `${bannedName} isimli kullanıcıyı kalıcı olarak BANLADI`);
-                switchTabContent('User Management');
-            }
+            users.splice(index, 1);
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            switchTabContent('User Management');
         }
 
+        // Matrix Arka Plan
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        let letters = 'ANCBYTE0123456789ABCDEF⚡';
-        letters = letters.split('');
+        let letters = 'ANCBYTE0123456789ABCDEF⚡'.split('');
         let fontSize = 14;
-        let columns = canvas.width / fontSize;
         let drops = [];
-        for (let i = 0; i < columns; i++) {
-            drops[i] = 1;
-        }
+        for (let i = 0; i < canvas.width / fontSize; i++) drops[i] = 1;
 
         function drawMatrix() {
+            if(savedTheme.mode !== 'matrix') return;
             ctx.fillStyle = 'rgba(7, 9, 15, 0.15)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             ctx.font = 'bold ' + fontSize + 'px monospace';
 
             for (let i = 0; i < drops.length; i++) {
-                let testText = letters[Math.floor(Math.random() * letters.length)];
-                ctx.fillStyle = Math.random() > 0.8 ? '#ffffff' : '#94a3b8';
-                ctx.fillText(testText, i * fontSize, drops[i] * fontSize);
-
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
+                ctx.fillStyle = Math.random() > 0.8 ? '#ffffff' : savedTheme.color;
+                ctx.fillText(letters[Math.floor(Math.random() * letters.length)], i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
                 drops[i]++;
             }
         }
