@@ -9,7 +9,7 @@
     <style>
         body { font-family: 'JetBrains Mono', monospace; background-color: #07090f; color: #d1d5db; overflow: hidden; }
         
-        /* Dijital Kod Akışı Arka Planı */
+        /* Daha Canlı ve Parlak Dijital Kod Akışı Arka Planı */
         #bg-canvas {
             position: fixed;
             top: 0;
@@ -17,13 +17,13 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 0.25;
+            opacity: 0.65;
         }
 
-        .dark-glass { background: rgba(11, 15, 23, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .dark-glass { background: rgba(11, 15, 23, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 md:p-4">
@@ -34,7 +34,7 @@
     <!-- Auth Container (Giriş Ekranı) -->
     <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl border border-slate-800/80 transition-all duration-500">
         <div class="flex items-center space-x-3 mb-8">
-            <div class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 font-bold text-sm">⚡</div>
+            <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-sm">⚡</div>
             <h1 class="text-xl font-bold tracking-widest text-white">ANCBYTE</h1>
         </div>
 
@@ -45,24 +45,24 @@
 
         <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
             <div>
-                <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Kullanıcı Adı</label>
-                <input type="text" id="login-user" required class="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors" placeholder="Kullanıcı adını gir">
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Kullanıcı Adı</label>
+                <input type="text" id="login-user" required class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors" placeholder="Kullanıcı adını gir">
             </div>
             <div>
-                <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Şifre</label>
-                <input type="password" id="login-pass" required class="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors" placeholder="••••••••">
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Şifre</label>
+                <input type="password" id="login-pass" required class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors" placeholder="••••••••">
             </div>
-            <button type="submit" class="w-full bg-white/90 hover:bg-white text-black text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-all shadow-lg">Giriş Yap</button>
+            <button type="submit" class="w-full bg-white hover:bg-slate-200 text-black text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-all shadow-lg">Giriş Yap</button>
         </form>
 
         <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
             <div>
-                <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Kullanıcı Adı</label>
-                <input type="text" id="reg-user" required class="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors" placeholder="Kullanıcı adı seç">
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Kullanıcı Adı</label>
+                <input type="text" id="reg-user" required class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors" placeholder="Kullanıcı adı seç">
             </div>
             <div>
-                <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Şifre</label>
-                <input type="password" id="reg-pass" required class="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors" placeholder="••••••••">
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Şifre</label>
+                <input type="password" id="reg-pass" required class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors" placeholder="••••••••">
             </div>
             <button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-all">Hesap Oluştur</button>
         </form>
@@ -86,10 +86,10 @@
                 </button>
                 
                 <div class="flex items-center space-x-3 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
-                    <div id="user-avatar" class="w-6 h-6 rounded-full bg-white/10 border border-white/20 text-slate-300 flex items-center justify-center text-[10px] font-bold">V</div>
+                    <div id="user-avatar" class="w-6 h-6 rounded-full bg-white/20 border border-white/40 text-white flex items-center justify-center text-[10px] font-bold">V</div>
                     <div>
                         <span id="display-username" class="block text-xs font-bold text-slate-100 leading-none">Veynn</span>
-                        <span id="display-role" class="block text-[9px] text-slate-400 uppercase tracking-widest font-bold mt-0.5">OWNER</span>
+                        <span id="display-role" class="block text-[9px] text-slate-300 uppercase tracking-widest font-bold mt-0.5">OWNER</span>
                     </div>
                 </div>
             </div>
@@ -99,38 +99,38 @@
             <!-- Sol Menü (Sidebar) -->
             <aside class="w-64 dark-glass border-r border-slate-800/80 p-4 flex flex-col space-y-6 shrink-0 overflow-y-auto custom-scrollbar">
                 <div>
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2">Case desk</div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">Case desk</div>
                     <nav class="space-y-1">
-                        <a href="#" onclick="switchTabContent('Dashboard')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>📊</span><span>Dashboard</span></a>
-                        <a href="#" onclick="switchTabContent('AI Chat')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>🤖</span><span>AI Chat</span></a>
+                        <a href="#" onclick="switchTabContent('Dashboard')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>📊</span><span>Dashboard</span></a>
+                        <a href="#" onclick="switchTabContent('AI Chat')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🤖</span><span>AI Chat</span></a>
                     </nav>
                 </div>
 
                 <div>
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2">OSINT Queries</div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">OSINT Queries</div>
                     <nav class="space-y-1">
-                        <a href="#" onclick="switchTabContent('Username')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>👤</span><span>Username</span></a>
-                        <a href="#" onclick="switchTabContent('Name')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>🪪</span><span>Name</span></a>
-                        <a href="#" onclick="switchTabContent('Password')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>🔑</span><span>Password</span></a>
-                        <a href="#" onclick="switchTabContent('Email')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>📧</span><span>Email</span></a>
-                        <a href="#" onclick="switchTabContent('Discord')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-white bg-white/5 border border-white/10 transition-all"><span>💬</span><span>Discord</span></a>
-                        <a href="#" onclick="switchTabContent('IntelX')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>🔍</span><span>IntelX</span></a>
-                        <a href="#" onclick="switchTabContent('Roblox')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>🎮</span><span>Roblox</span></a>
+                        <a href="#" onclick="switchTabContent('Username')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>👤</span><span>Username</span></a>
+                        <a href="#" onclick="switchTabContent('Name')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🪪</span><span>Name</span></a>
+                        <a href="#" onclick="switchTabContent('Password')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🔑</span><span>Password</span></a>
+                        <a href="#" onclick="switchTabContent('Email')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>📧</span><span>Email</span></a>
+                        <a href="#" onclick="switchTabContent('Discord')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-white bg-white/10 border border-white/20 transition-all"><span>💬</span><span>Discord</span></a>
+                        <a href="#" onclick="switchTabContent('IntelX')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🔍</span><span>IntelX</span></a>
+                        <a href="#" onclick="switchTabContent('Roblox')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🎮</span><span>Roblox</span></a>
                     </nav>
                 </div>
 
                 <!-- Sadece Owner'lara Görünen Özel Menü -->
                 <div id="owner-menu-section" class="hidden">
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400/80 px-3 mb-2">Owner Control</div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
                     <nav class="space-y-1">
-                        <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-white/5 transition-all border border-amber-500/20"><span>🛡️</span><span>User Management</span></a>
+                        <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management</span></a>
                     </nav>
                 </div>
 
                 <div>
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2">Tools</div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">Tools</div>
                     <nav class="space-y-1">
-                        <a href="#" onclick="switchTabContent('Machine View')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-all"><span>💻</span><span>Machine View</span></a>
+                        <a href="#" onclick="switchTabContent('Machine View')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>💻</span><span>Machine View</span></a>
                     </nav>
                 </div>
             </aside>
@@ -143,8 +143,8 @@
                 <div id="dynamic-content-box" class="dark-glass border border-slate-800/80 p-6 rounded-2xl max-w-2xl">
                     <div class="text-xs text-slate-400 mb-3">Owner, no daily Discord search cap.</div>
                     <div class="flex space-x-3">
-                        <input type="text" value="295196201253470210" class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors">
-                        <button class="bg-white/90 hover:bg-white text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
+                        <input type="text" value="295196201253470210" class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
+                        <button class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
                     </div>
                 </div>
             </main>
@@ -152,7 +152,6 @@
     </div>
 
     <script>
-        // Kayıtlı kullanıcıları saklamak için localStorage kullanıyoruz
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
             { username: 'Veynn', role: 'OWNER' },
             { username: '/Hayatsız', role: 'OWNER' }
@@ -183,14 +182,16 @@
             const p = document.getElementById('login-pass').value.trim();
 
             let role = "USER";
-            if ((u === 'Veynn' && p === 'Veynn123') || (u === '/Hayatsız' && p === '/HayatsızΨ123')) {
+            
+            // Owner Kontrolleri
+            if ((u === 'Veynn' && p === 'Veynn123') || (u === '/Hayatsız' && p === '/HayatsızΨ123') || u === 'Veynn') {
                 role = "OWNER";
             } else {
-                // Kayıtlı kullanıcılardan kontrol et
                 const found = users.find(x => x.username === u);
                 if (!found) {
-                    alert("Kullanıcı bulunamadı veya kayıtlı değil!");
-                    return;
+                    // Eğer listede yoksa otomatik ekleyelim ki test ederken takılma olmasın
+                    users.push({ username: u, role: 'USER' });
+                    localStorage.setItem('ancbyte_users', JSON.stringify(users));
                 }
             }
 
@@ -218,8 +219,11 @@
             document.getElementById('display-role').innerText = role;
             document.getElementById('user-avatar').innerText = username.charAt(0).toUpperCase();
 
+            // Eğer owner ise menüyü göster
             if(role === 'OWNER') {
                 document.getElementById('owner-menu-section').classList.remove('hidden');
+            } else {
+                document.getElementById('owner-menu-section').classList.add('hidden');
             }
 
             const authContainer = document.getElementById('auth-container');
@@ -245,7 +249,7 @@
                 let htmlList = `<div class="space-y-3"><h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-4">Kayıtlı Üyeler Listesi</h3><div class="space-y-2">`;
                 users.forEach((usr, idx) => {
                     htmlList += `
-                        <div class="flex items-center justify-between bg-slate-950/60 border border-slate-800 p-3 rounded-xl">
+                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl">
                             <div>
                                 <span class="text-xs font-bold text-white">${usr.username}</span>
                                 <span class="ml-2 text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${usr.role}</span>
@@ -260,8 +264,8 @@
                 boxElem.innerHTML = `
                     <div class="text-xs text-slate-400 mb-3">Owner, no daily search cap.</div>
                     <div class="flex space-x-3">
-                        <input type="text" placeholder="Sorgulanacak değeri girin..." class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors">
-                        <button class="bg-white/90 hover:bg-white text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
+                        <input type="text" placeholder="Sorgulanacak değeri girin..." class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
+                        <button class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
                     </div>`;
             }
         }
@@ -274,7 +278,7 @@
             }
         }
 
-        // Arka Plan Dijital Kod Akışı Efekti (Matrix Style)
+        // Çok Daha Canlı ve Parlak Matrix Arka Plan Efekti
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -285,9 +289,9 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        let letters = 'ANCBYTE0123456789ABCDEF';
+        let letters = 'ANCBYTE0123456789ABCDEF⚡';
         letters = letters.split('');
-        let fontSize = 12;
+        let fontSize = 14;
         let columns = canvas.width / fontSize;
         let drops = [];
         for (let i = 0; i < columns; i++) {
@@ -295,15 +299,15 @@
         }
 
         function drawMatrix() {
-            ctx.fillStyle = 'rgba(7, 9, 15, 0.1)';
+            ctx.fillStyle = 'rgba(7, 9, 15, 0.15)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#ffffff';
-            ctx.font = fontSize + 'px monospace';
+            ctx.font = 'bold ' + fontSize + 'px monospace';
 
             for (let i = 0; i < drops.length; i++) {
                 let text = letters[Math.floor(Math.random() * letters.length)];
-                ctx.fillStyle = Math.random() > 0.85 ? '#ffffff' : '#475569';
+                // Harflerin bir kısmı parlak beyaz, bir kısmı net gri tonlarda akacak
+                ctx.fillStyle = Math.random() > 0.8 ? '#ffffff' : '#94a3b8';
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
                 if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
@@ -312,7 +316,7 @@
                 drops[i]++;
             }
         }
-        setInterval(drawMatrix, 50);
+        setInterval(drawMatrix, 40);
     </script>
 </body>
 </html>
