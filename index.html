@@ -325,17 +325,15 @@
             const boxElem = document.getElementById('dynamic-content-box');
 
             if(title === 'User Management') {
-                descElem.innerText = "Tüm üyelerin rollerini (OWNER/USER), boost/sorgu haklarını düzenleyebilir, kullanıcıları sistemden atabilir ve canlı log akışını inceleyebilirsiniz.";
+                descElem.innerText = "Tüm üyelerin rollerini (OWNER/USER), sorgu haklarını dilediğiniz gibi düzenleyebilir, kullanıcıları sistemden atabilir ve canlı log akışını inceleyebilirsiniz.";
                 
                 let htmlList = `
                     <div class="space-y-6">
                         <div>
-                            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">Kayıtlı Üyeler ve Rol/Boost Yönetimi</h3>
-                            <div class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-2">`;
+                            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">Kayıtlı Üyeler ve Özel Sorgu Hak Yönetimi</h3>
+                            <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-2">`;
                 
                 users.forEach((usr, idx) => {
-                    let boostText = usr.boost === 0 ? 'Boost Yok (1 Hak)' : (usr.boost === 1 ? '1 Boost (30 Hak)' : (usr.boost === 2 ? '2 Boost (65 Hak)' : '3+ Boost (Sınırsız)'));
-                    
                     let isProtectedVeynn = (usr.username === 'Veynn');
                     let isSelf = (currentUser && usr.username === currentUser.username);
 
@@ -350,23 +348,21 @@
                                 <option value="USER" ${usr.role==='USER'?'selected':''}>USER</option>
                                 <option value="OWNER" ${usr.role==='OWNER'?'selected':''}>OWNER</option>
                             </select>
-                            <select onchange="updateUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
-                                <option value="0" ${usr.boost==0?'selected':''}>0 Boost</option>
-                                <option value="1" ${usr.boost==1?'selected':''}>1 Boost (30)</option>
-                                <option value="2" ${usr.boost==2?'selected':''}>2 Boost (65)</option>
-                                <option value="3" ${usr.boost==3?'selected':''}>3+ Boost (Sınırsız)</option>
-                            </select>
-                            <button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Kick</button>`;
+                            <div class="flex items-center space-x-1">
+                                <input type="number" id="custom-query-${idx}" placeholder="Sayı" value="${usr.queriesLeft === 'Sınırsız' ? '' : usr.queriesLeft}" class="w-14 bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1 focus:outline-none focus:border-white">
+                                <button onclick="giveCustomQueries(${idx})" class="bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-1 rounded transition-all">Sorgu Ver</button>
+                            </div>
+                            <button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2 py-1 rounded transition-all">Kick</button>`;
                     }
 
                     htmlList += `
-                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl">
+                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl gap-2">
                             <div>
                                 <span class="text-xs font-bold text-white">${usr.username}</span>
                                 <span class="ml-2 text-[9px] px-2 py-0.5 rounded ${usr.role === 'OWNER' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-300'} font-bold">${usr.role}</span>
-                                <span class="block text-[10px] text-purple-400 mt-1">Durum: ${boostText} | Kalan Hak: ${usr.queriesLeft}</span>
+                                <span class="block text-[10px] text-purple-400 mt-1">Kalan Sorgu Hakkı: <strong class="text-white">${usr.queriesLeft}</strong></span>
                             </div>
-                            <div class="flex items-center space-x-2">
+                            <div class="flex items-center space-x-2 flex-wrap justify-end">
                                 ${controlsHtml}
                             </div>
                         </div>`;
@@ -425,14 +421,11 @@
 
             logAction(currentUser.username, `${currentActiveTab} araması yaptı: ${val}`);
 
-            // Alert yerine panel içerisinde dinamik sonuç kutusunu dolduruyoruz
             const resultsArea = document.getElementById('search-results-area');
             const resultsContent = document.getElementById('search-results-content');
             
             if (resultsArea && resultsContent) {
                 resultsArea.classList.remove('hidden');
-                
-                // Şimdilik OSINT verisi bağlı olmadığı için simüle edilmiş arama çıktısı basıyoruz
                 resultsContent.innerHTML = `
                     <div class="text-slate-500">[>>] Sorgulanan hedef: <span class="text-white">${val}</span> (${currentActiveTab})</div>
                     <div class="text-amber-400">[!] Durum: Veritabanında eşleşen kayıt aranıyor...</div>
@@ -462,14 +455,18 @@
             switchTabContent('User Management');
         }
 
-        function updateUserBoost(index, boostVal) {
-            let targetUser = users[index];
-            let b = parseInt(boostVal);
-            let limit = b === 0 ? 1 : (b === 1 ? 30 : (b === 2 ? 65 : 'Sınırsız'));
-            users[index].boost = b;
-            users[index].queriesLeft = limit;
+        function giveCustomQueries(index) {
+            const inputVal = document.getElementById(`custom-query-${index}`).value.trim();
+            const qNum = parseInt(inputVal);
+
+            if(isNaN(qNum) || qNum < 0) {
+                alert("Lütfen geçerli bir sorgu sayısı girin!");
+                return;
+            }
+
+            users[index].queriesLeft = qNum;
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
-            logAction(currentUser.username, `${users[index].username} kullanıcısının boost seviyesini ${b} olarak güncelledi`);
+            logAction(currentUser.username, `${users[index].username} kullanıcısına ${qNum} adet sorgu hakkı verdi`);
             switchTabContent('User Management');
         }
 
