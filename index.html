@@ -9,7 +9,6 @@
     <style>
         body { font-family: 'JetBrains Mono', monospace; background-color: #07090f; color: #d1d5db; overflow: hidden; }
         
-        /* Daha Canlı ve Parlak Dijital Kod Akışı Arka Planı */
         #bg-canvas {
             position: fixed;
             top: 0;
@@ -28,13 +27,14 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 md:p-4">
 
-    <!-- Dijital Kod Akışı Canvas -->
     <canvas id="bg-canvas"></canvas>
 
     <!-- Auth Container (Giriş Ekranı) -->
     <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl border border-slate-800/80 transition-all duration-500">
         <div class="flex items-center space-x-3 mb-8">
-            <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-sm">⚡</div>
+            <div class="w-10 h-10 rounded-xl overflow-hidden border border-white/20 shrink-0 shadow-lg">
+                <img src="https://i.hizliresim.com/5z0r9b9.jpg" alt="ANCBYTE Logo" class="w-full h-full object-cover">
+            </div>
             <h1 class="text-xl font-bold tracking-widest text-white">ANCBYTE</h1>
         </div>
 
@@ -74,6 +74,9 @@
         <!-- Top Navbar -->
         <header class="h-16 dark-glass border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0">
             <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl overflow-hidden border border-white/20 shrink-0 shadow-lg">
+                    <img src="https://i.hizliresim.com/5z0r9b9.jpg" alt="ANCBYTE Logo" class="w-full h-full object-cover">
+                </div>
                 <span class="text-sm font-bold tracking-widest text-white">ANCBYTE</span>
             </div>
 
@@ -111,10 +114,8 @@
                     <nav class="space-y-1">
                         <a href="#" onclick="switchTabContent('Username')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>👤</span><span>Username</span></a>
                         <a href="#" onclick="switchTabContent('Name')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🪪</span><span>Name</span></a>
-                        <a href="#" onclick="switchTabContent('Password')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🔑</span><span>Password</span></a>
                         <a href="#" onclick="switchTabContent('Email')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>📧</span><span>Email</span></a>
                         <a href="#" onclick="switchTabContent('Discord')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-white bg-white/10 border border-white/20 transition-all"><span>💬</span><span>Discord</span></a>
-                        <a href="#" onclick="switchTabContent('IntelX')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🔍</span><span>IntelX</span></a>
                         <a href="#" onclick="switchTabContent('Roblox')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🎮</span><span>Roblox</span></a>
                     </nav>
                 </div>
@@ -124,13 +125,6 @@
                     <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
                     <nav class="space-y-1">
                         <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management</span></a>
-                    </nav>
-                </div>
-
-                <div>
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">Tools</div>
-                    <nav class="space-y-1">
-                        <a href="#" onclick="switchTabContent('Machine View')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>💻</span><span>Machine View</span></a>
                     </nav>
                 </div>
             </aside>
@@ -153,8 +147,8 @@
 
     <script>
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
-            { username: 'Veynn', role: 'OWNER' },
-            { username: '/Hayatsız', role: 'OWNER' }
+            { username: 'Veynn', role: 'OWNER', info: 'Main Admin' },
+            { username: '/Hayatsız', role: 'OWNER', info: 'Co-Owner' }
         ];
 
         function switchTab(tab) {
@@ -183,14 +177,14 @@
 
             let role = "USER";
             
-            // Owner Kontrolleri
             if ((u === 'Veynn' && p === 'Veynn123') || (u === '/Hayatsız' && p === '/HayatsızΨ123') || u === 'Veynn') {
                 role = "OWNER";
             } else {
                 const found = users.find(x => x.username === u);
                 if (!found) {
-                    // Eğer listede yoksa otomatik ekleyelim ki test ederken takılma olmasın
-                    users.push({ username: u, role: 'USER' });
+                    // Yeni giren kullanıcıyı IP / Cihaz bilgisiyle sisteme kaydet
+                    const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
+                    users.push({ username: u, role: 'USER', info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
                     localStorage.setItem('ancbyte_users', JSON.stringify(users));
                 }
             }
@@ -208,7 +202,8 @@
                 return;
             }
 
-            users.push({ username: u, role: 'USER' });
+            const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
+            users.push({ username: u, role: 'USER', info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
             switchTab('login');
@@ -219,7 +214,6 @@
             document.getElementById('display-role').innerText = role;
             document.getElementById('user-avatar').innerText = username.charAt(0).toUpperCase();
 
-            // Eğer owner ise menüyü göster
             if(role === 'OWNER') {
                 document.getElementById('owner-menu-section').classList.remove('hidden');
             } else {
@@ -244,15 +238,16 @@
             const boxElem = document.getElementById('dynamic-content-box');
 
             if(title === 'User Management') {
-                descElem.innerText = "Sisteme kayıtlı olan tüm kullanıcıları görüntüleyebilir ve istenmeyen kullanıcıları sistemden atabilirsiniz.";
+                descElem.innerText = "Sisteme giriş yapan ve kayıt olan kullanıcıları görüntüleyebilir, bağlantıyı paylaşan kişileri tespit edip sistemden atabilirsiniz.";
                 
-                let htmlList = `<div class="space-y-3"><h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-4">Kayıtlı Üyeler Listesi</h3><div class="space-y-2">`;
+                let htmlList = `<div class="space-y-3"><h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-4">Sisteme Giren Üyeler ve Cihaz Bilgileri</h3><div class="space-y-2">`;
                 users.forEach((usr, idx) => {
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl">
                             <div>
                                 <span class="text-xs font-bold text-white">${usr.username}</span>
                                 <span class="ml-2 text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${usr.role}</span>
+                                <span class="block text-[10px] text-slate-400 mt-1">Cihaz/Giriş: ${usr.info || 'Bilinmiyor'}</span>
                             </div>
                             ${usr.role !== 'OWNER' ? `<button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Kick / Ban</button>` : `<span class="text-[10px] text-slate-500">Protected</span>`}
                         </div>`;
@@ -278,7 +273,6 @@
             }
         }
 
-        // Çok Daha Canlı ve Parlak Matrix Arka Plan Efekti
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -306,7 +300,6 @@
 
             for (let i = 0; i < drops.length; i++) {
                 let text = letters[Math.floor(Math.random() * letters.length)];
-                // Harflerin bir kısmı parlak beyaz, bir kısmı net gri tonlarda akacak
                 ctx.fillStyle = Math.random() > 0.8 ? '#ffffff' : '#94a3b8';
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
