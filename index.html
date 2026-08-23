@@ -111,7 +111,6 @@
             </div>
 
             <div class="flex items-center space-x-3">
-                <!-- Günlük Kalan Sorgu Hakkı Göstergesi -->
                 <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-lg flex items-center space-x-2">
                     <span class="text-xs">⚡</span>
                     <div>
@@ -157,7 +156,6 @@
                     </nav>
                 </div>
 
-                <!-- Sadece Owner'lara Görünen Owner Control -->
                 <div id="owner-menu-section" class="hidden space-y-4">
                     <div>
                         <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
@@ -208,7 +206,6 @@
     <script>
         let currentUser = null;
 
-        // Varsayılan kullanıcılar ve şifreleri (şifreler 'password' alanında tutulur)
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
             { username: 'Veynn', password: '123', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
             { username: '/Hayatsız', password: '123', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
@@ -321,7 +318,6 @@
 
             let found = users.find(x => x.username === u);
             
-            // Kullanıcı veritabanında yoksa veya şifre uyuşmuyorsa hata ver
             if (!found || found.password !== p) {
                 alert("Hata: Geçersiz kullanıcı adı veya şifre!");
                 return;
@@ -418,16 +414,18 @@
             } else if(title === 'User Management') {
                 document.getElementById('content-title').innerText = 'Owner Control & Logs';
                 descElem.innerText = "Üye rolleri ve hak yönetimi.";
-                let htmlList = `<div class="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2">`;
+                
+                // Sabit yükseklik, taşmayı önleyen esnek flex yapısı ve custom scrollbar eklendi
+                let htmlList = `<div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
                 users.forEach((usr, idx) => {
                     htmlList += `
-                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl gap-2">
+                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3.5 rounded-xl gap-2">
                             <div>
                                 <span class="text-xs font-bold text-white">${usr.username}</span>
                                 <span class="ml-2 text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${usr.role}</span>
                                 <span class="block text-[10px] text-purple-400 mt-1">Kalan Hak: <strong class="text-white">${usr.queriesLeft}</strong></span>
                             </div>
-                            <button onclick="banUser(${idx})" class="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-1 rounded">Banla</button>
+                            <button onclick="banUser(${idx})" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">Banla</button>
                         </div>`;
                 });
                 htmlList += `</div>`;
@@ -445,11 +443,11 @@
                 document.getElementById('content-title').innerText = 'Search History Archive';
                 descElem.innerText = "Geçmiş sorgu kayıtlarınız.";
                 let userHist = searchHistories[currentUser.username] || [];
-                let histHtml = `<div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">`;
+                let histHtml = `<div class="space-y-2 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
                 if(userHist.length === 0) histHtml += `<div class="text-slate-500 text-xs italic">Kayıt yok.</div>`;
                 else {
                     userHist.slice().reverse().forEach(h => {
-                        histHtml += `<div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs flex justify-between"><span><strong class="text-amber-400">[${h.category}]</strong> ${h.query}</span><span class="text-slate-500 text-[10px]">${h.time}</span></div>`;
+                        histHtml += `<div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs flex justify-between items-center"><span><strong class="text-amber-400">[${h.category}]</strong> ${h.query}</span><span class="text-slate-500 text-[10px]">${h.time}</span></div>`;
                     });
                 }
                 histHtml += `</div>`;
@@ -494,7 +492,6 @@
             switchTabContent('User Management');
         }
 
-        // Matrix Arka Plan
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
