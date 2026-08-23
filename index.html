@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IntelByte - OSINT Bureau & Log Intelligence</title>
+    <title>ANCBYTE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -12,58 +12,54 @@
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #0b0f17; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #374151; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 md:p-4 overflow-hidden">
 
-    <!-- Auth Container -->
+    <!-- Auth Container (Giriş Ekranı) -->
     <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl border border-slate-800/80">
         <div class="flex items-center space-x-3 mb-8">
-            <div class="w-8 h-8 rounded-lg bg-orange-600/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-sm">🦊</div>
-            <h1 class="text-xl font-bold tracking-widest text-slate-100">INTELBYTE</h1>
+            <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-sm">⚡</div>
+            <h1 class="text-xl font-bold tracking-widest text-white">ANCBYTE</h1>
         </div>
 
         <div class="flex border-b border-slate-800 mb-6">
-            <button id="tab-login" onclick="switchTab('login')" class="flex-1 pb-3 text-xs font-bold tracking-wider text-orange-400 border-b-2 border-orange-500 transition-all uppercase">Giriş Yap</button>
+            <button id="tab-login" onclick="switchTab('login')" class="flex-1 pb-3 text-xs font-bold tracking-wider text-white border-b-2 border-white transition-all uppercase">Giriş Yap</button>
             <button id="tab-register" onclick="switchTab('register')" class="flex-1 pb-3 text-xs font-bold tracking-wider text-slate-500 border-b-2 border-transparent transition-all uppercase">Kayıt Ol</button>
         </div>
 
-        <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+        <form id="form-login" onsubmit="handleAuth(event)" class="space-y-4">
             <div>
                 <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Kullanıcı Adı</label>
-                <input type="text" id="login-username" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-orange-500 transition-colors" placeholder="Kullanıcı adını gir">
+                <input type="text" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors" placeholder="Kullanıcı adını gir">
             </div>
             <div>
                 <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Şifre</label>
-                <input type="password" id="login-password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-orange-500 transition-colors" placeholder="••••••••">
+                <input type="password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors" placeholder="••••••••">
             </div>
-            <button type="submit" class="w-full bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-all shadow-lg shadow-orange-600/20">Büroya Giriş Yap</button>
+            <button type="submit" class="w-full bg-white hover:bg-slate-200 text-black text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-all shadow-lg">Giriş Yap</button>
         </form>
 
-        <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+        <form id="form-register" onsubmit="handleAuth(event)" class="space-y-4 hidden">
             <div>
                 <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Kullanıcı Adı</label>
-                <input type="text" id="reg-username" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-orange-500 transition-colors" placeholder="Kullanıcı adı seç">
+                <input type="text" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors" placeholder="Kullanıcı adı seç">
             </div>
             <div>
                 <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Şifre</label>
-                <input type="password" id="reg-password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-orange-500 transition-colors" placeholder="••••••••">
+                <input type="password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white transition-colors" placeholder="••••••••">
             </div>
             <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-all">Hesap Oluştur</button>
         </form>
-
-        <div id="auth-message" class="mt-4 text-center text-xs text-rose-400 hidden"></div>
     </div>
 
-    <!-- Main IntelByte Dashboard -->
+    <!-- Main Dashboard (Fotoğraftaki Siyah-Beyaz Yan Menülü Arayüz) -->
     <div id="dashboard-container" class="w-full h-screen hidden flex flex-col overflow-hidden bg-[#07090f]">
         
         <!-- Top Navbar -->
         <header class="h-16 bg-[#0b0f17] border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0">
             <div class="flex items-center space-x-3">
-                <div class="w-7 h-7 rounded-md bg-orange-600/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-xs">🦊</div>
-                <span class="text-sm font-bold tracking-widest text-slate-100">INTELBYTE</span>
+                <span class="text-sm font-bold tracking-widest text-white">ANCBYTE</span>
             </div>
 
             <div class="flex items-center space-x-3">
@@ -75,21 +71,62 @@
                 </button>
                 
                 <div class="flex items-center space-x-3 bg-[#131822] border border-slate-800 px-3 py-1.5 rounded-lg">
-                    <div class="w-6 h-6 rounded-full bg-orange-500/20 border border-orange-500 text-orange-400 flex items-center justify-center text-[10px] font-bold">V</div>
+                    <div class="w-6 h-6 rounded-full bg-white/20 border border-white text-white flex items-center justify-center text-[10px] font-bold">V</div>
                     <div>
-                        <span id="dash-username" class="block text-xs font-bold text-slate-200 leading-none">Veynn</span>
-                        <span id="dash-role" class="block text-[9px] text-orange-400 uppercase tracking-widest font-bold mt-0.5">OWNER</span>
+                        <span class="block text-xs font-bold text-slate-200 leading-none">Veynn</span>
+                        <span class="block text-[9px] text-slate-400 uppercase tracking-widest font-bold mt-0.5">OWNER</span>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- Dashboard Content Area -->
-        <div class="flex-1 p-6 overflow-y-auto custom-scrollbar flex items-center justify-center">
-            <div class="text-center">
-                <h2 class="text-lg font-bold text-slate-200">Hoş Geldin, Veynn</h2>
-                <p class="text-xs text-slate-500 mt-1">IntelByte OSINT paneli başarıyla yüklendi.</p>
-            </div>
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Sol Menü (Sidebar) -->
+            <aside class="w-64 bg-[#0b0f17] border-r border-slate-800/80 p-4 flex flex-col space-y-6 shrink-0 overflow-y-auto custom-scrollbar">
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2">Case desk</div>
+                    <nav class="space-y-1">
+                        <a href="#" onclick="switchTabContent('Dashboard')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>📊</span><span>Dashboard</span></a>
+                        <a href="#" onclick="switchTabContent('AI Chat')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>🤖</span><span>AI Chat</span></a>
+                    </nav>
+                </div>
+
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2">OSINT Queries</div>
+                    <nav class="space-y-1">
+                        <a href="#" onclick="switchTabContent('Username')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>👤</span><span>Username</span></a>
+                        <a href="#" onclick="switchTabContent('Name')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>🪪</span><span>Name</span></a>
+                        <a href="#" onclick="switchTabContent('Password')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>🔑</span><span>Password</span></a>
+                        <a href="#" onclick="switchTabContent('Email')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>📧</span><span>Email</span></a>
+                        <a href="#" onclick="switchTabContent('Discord')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-white bg-slate-800/80 transition-all"><span>💬</span><span>Discord</span></a>
+                        <a href="#" onclick="switchTabContent('IntelX')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>🔍</span><span>IntelX</span></a>
+                        <a href="#" onclick="switchTabContent('Roblox')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>🎮</span><span>Roblox</span></a>
+                    </nav>
+                </div>
+
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2">Tools</div>
+                    <nav class="space-y-1">
+                        <a href="#" onclick="switchTabContent('Domain origin')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>🌐</span><span>Domain origin</span></a>
+                        <a href="#" onclick="switchTabContent('Case files')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>📁</span><span>Case files</span></a>
+                        <a href="#" onclick="switchTabContent('Machine View')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/50 transition-all"><span>💻</span><span>Machine View</span></a>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- İçerik Alanı -->
+            <main class="flex-1 p-8 overflow-y-auto custom-scrollbar flex flex-col">
+                <h2 id="content-title" class="text-xl font-bold text-white mb-2">Discord Lookup</h2>
+                <p id="content-desc" class="text-xs text-slate-400 mb-6">Look up a Discord ID to pull basic profile signals, potential linked accounts, and any related leak rows.</p>
+                
+                <div class="bg-[#0b0f17] border border-slate-800/80 p-6 rounded-2xl max-w-2xl">
+                    <div class="text-xs text-slate-400 mb-3">Owner, no daily Discord search cap.</div>
+                    <div class="flex space-x-3">
+                        <input type="text" value="295196201253470210" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-white">
+                        <button class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
@@ -99,32 +136,29 @@
             const regBtn = document.getElementById('tab-register');
             const loginForm = document.getElementById('form-login');
             const regForm = document.getElementById('form-register');
-            const msg = document.getElementById('auth-message');
-            msg.classList.add('hidden');
 
             if (tab === 'login') {
-                loginBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-orange-400 border-b-2 border-orange-500 transition-all uppercase";
+                loginBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-white border-b-2 border-white transition-all uppercase";
                 regBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-slate-500 border-b-2 border-transparent transition-all uppercase";
                 loginForm.classList.remove('hidden');
                 regForm.classList.add('hidden');
             } else {
-                regBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-orange-400 border-b-2 border-orange-500 transition-all uppercase";
+                regBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-white border-b-2 border-white transition-all uppercase";
                 loginBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-slate-500 border-b-2 border-transparent transition-all uppercase";
                 regForm.classList.remove('hidden');
                 loginForm.classList.add('hidden');
             }
         }
 
-        function handleLogin(e) {
+        function handleAuth(e) {
             e.preventDefault();
             document.getElementById('auth-container').classList.add('hidden');
             document.getElementById('dashboard-container').classList.remove('hidden');
         }
 
-        function handleRegister(e) {
-            e.preventDefault();
-            document.getElementById('auth-container').classList.add('hidden');
-            document.getElementById('dashboard-container').classList.remove('hidden');
+        function switchTabContent(title) {
+            document.getElementById('content-title').innerText = title + " Lookup";
+            document.getElementById('content-desc').innerText = title + " verilerini sorgulamak ve analiz etmek için bu alanı kullanabilirsiniz.";
         }
     </script>
 </body>
