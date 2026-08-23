@@ -186,8 +186,10 @@
             { username: 'Hayatsiz', password: '123', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
         ];
 
+        // --- ÖNEMLİ: Verileri sıfırdan kur ve bozuk cache'i temizle ---
         let users = JSON.parse(localStorage.getItem('ancbyte_users'));
-        if (!users || !users.some(u => u.username.toLowerCase() === 'veyyn')) {
+        // Eğer kullanıcı listesi bozuksa veya Veynn yoksa direkt varsayılanları baştan yükle
+        if (!users || !Array.isArray(users) || !users.some(u => u.username.toLowerCase() === 'veynn')) {
             users = defaultUsers;
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
         }
@@ -246,13 +248,12 @@
             }
         }
 
-        // SADECE "Veynn" için otomatik giriş kontrolü (Diğer kullanıcılar otomatik giremez)
+        // SADECE "Veynn" için otomatik giriş kontrolü
         window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('ancbyte_current_session');
-            if (savedUser) {
+            const savedSession = localStorage.getItem('ancbyte_current_session');
+            if (savedSession) {
                 try {
-                    const uObj = JSON.parse(savedUser);
-                    // Sadece Veynn ise otomatik oturum aç
+                    const uObj = JSON.parse(savedSession);
                     if (uObj.username && uObj.username.toLowerCase() === 'veynn') {
                         let freshUser = users.find(x => x.username.toLowerCase() === 'veynn');
                         if (freshUser) {
@@ -263,7 +264,6 @@
                             return;
                         }
                     }
-                    // Eğer Veynn dışı bir oturum kalmışsa temizle
                     localStorage.removeItem('ancbyte_current_session');
                 } catch(e) {
                     localStorage.removeItem('ancbyte_current_session');
@@ -547,6 +547,7 @@
 
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
             switchTabContent('User Management');
+            
         }
 
         function changeUserBoost(index, boostVal) {
