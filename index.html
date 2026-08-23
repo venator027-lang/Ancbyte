@@ -1,96 +1,602 @@
-let currentUser = null;
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANCBYTE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #ef4444;
+            --accent-glow: rgba(239, 68, 68, 0.35);
+            --glass-bg: rgba(11, 15, 23, 0.88);
+            --blur-val: 12px;
+        }
 
-    // Veritabanı versiyonunu güncelleyip eski hatalı önbelleği temizliyoruz
-    const DB_VERSION = 'veynn_auth_v13_final';
-    if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
-        localStorage.clear();
-        localStorage.setItem('ancbyte_db_ver', DB_VERSION);
-    }
+        body { font-family: 'JetBrains Mono', monospace; background-color: #07090f; color: #d1d5db; overflow: hidden; }
+        
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.65;
+        }
 
-    // Varsayılan kullanıcılar ve net şifre tanımları
-    let defaultUsers = [
-        { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
-        { username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
-    ];
+        .dark-glass { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(var(--blur-val)); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            box-shadow: 0 0 25px var(--accent-glow);
+            transition: all 0.3s ease;
+        }
 
-    let users = JSON.parse(localStorage.getItem('ancbyte_users'));
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        .accent-text { color: var(--accent-color); }
+        .accent-border { border-color: var(--accent-color); }
+        .accent-bg { background-color: var(--accent-color); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-0 md:p-4">
 
-    if (!users || !Array.isArray(users)) {
-        users = defaultUsers;
-        localStorage.setItem('ancbyte_users', JSON.stringify(users));
-    } else {
-        // Veynn kullanıcısını ve şifresini her açılışta zorla güncelle/garantiye al
-        let veynnIndex = users.findIndex(x => x.username.toLowerCase() === 'veynn');
-        if (veynnIndex !== -1) {
-            users[veynnIndex].password = '0409kyzex';
-            users[veynnIndex].role = 'OWNER';
-            users[veynnIndex].queriesLeft = 'Sınırsız';
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Auth Container (Giriş Ekranı) -->
+    <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl transition-all duration-500">
+        <div class="flex items-center space-x-3 mb-8">
+            <div id="auth-logo-box" class="w-10 h-10 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg">
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect width="100" height="100" fill="#07090f"/>
+                    <polygon points="50,15 30,75 70,75" fill="none" stroke="var(--accent-color)" stroke-width="6"/>
+                    <line x1="20" y1="50" x2="80" y2="50" stroke="var(--accent-color)" stroke-width="5"/>
+                    <line x1="38" y1="30" x2="62" y2="30" stroke="var(--accent-color)" stroke-width="4"/>
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#333333" stroke-width="3"/>
+                </svg>
+            </div>
+            <h1 class="text-xl font-bold tracking-widest text-white">ANCBYTE</h1>
+        </div>
+
+        <div class="flex border-b border-slate-800 mb-6">
+            <button id="tab-login" onclick="switchTab('login')" class="flex-1 pb-3 text-xs font-bold tracking-wider text-white border-b-2 border-white transition-all uppercase">Giriş Yap</button>
+            <button id="tab-register" onclick="switchTab('register')" class="flex-1 pb-3 text-xs font-bold tracking-wider text-slate-500 border-b-2 border-transparent transition-all uppercase">Kayıt Ol</button>
+        </div>
+
+        <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Kullanıcı Adı</label>
+                <input type="text" id="login-user" required class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors" placeholder="Kullanıcı adını gir">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Şifre</label>
+                <input type="password" id="login-pass" required class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-white hover:bg-slate-200 text-black text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-all shadow-lg">Giriş Yap</button>
+        </form>
+
+        <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+            <div>
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Kullanıcı Adı</label>
+                <input type="text" id="reg-user" required class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors" placeholder="Kullanıcı adı seç">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Şifre</label>
+                <input type="password" id="reg-pass" required class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-all">Hesap Oluştur</button>
+        </form>
+    </div>
+
+    <!-- Main Dashboard (Ana Panel) -->
+    <div id="dashboard-container" class="w-full h-screen hidden flex flex-col overflow-hidden bg-transparent transition-all duration-500">
+        
+        <!-- Top Navbar -->
+        <header class="h-16 dark-glass border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <rect width="100" height="100" fill="#07090f"/>
+                        <polygon points="50,15 30,75 70,75" fill="none" stroke="var(--accent-color)" stroke-width="6"/>
+                        <line x1="20" y1="50" x2="80" y2="50" stroke="var(--accent-color)" stroke-width="5"/>
+                        <line x1="38" y1="30" x2="62" y2="30" stroke="var(--accent-color)" stroke-width="4"/>
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#333333" stroke-width="3"/>
+                    </svg>
+                </div>
+                <span class="text-sm font-bold tracking-widest text-white">ANCBYTE</span>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+                    <span class="text-xs">⚡</span>
+                    <div>
+                        <span class="block text-[9px] text-amber-400 uppercase tracking-widest font-bold">Kalan Hak</span>
+                        <span id="header-query-count" class="block text-xs font-bold text-slate-100 leading-none">3</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
+                    <div id="user-avatar" class="w-6 h-6 rounded-full bg-white/20 border border-white/40 text-white flex items-center justify-center text-[10px] font-bold">V</div>
+                    <div>
+                        <span id="display-username" class="block text-xs font-bold text-slate-100 leading-none">Veynn</span>
+                        <span id="display-role" class="block text-[9px] text-slate-300 uppercase tracking-widest font-bold mt-0.5">OWNER</span>
+                    </div>
+                    <button onclick="logout()" title="Çıkış Yap" class="ml-2 text-slate-400 hover:text-red-400 text-xs font-bold transition-colors">⏏</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Sol Menü (Sidebar) -->
+            <aside class="w-64 dark-glass border-r border-slate-800/80 p-4 flex flex-col space-y-6 shrink-0 overflow-y-auto custom-scrollbar">
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">Case desk</div>
+                    <nav class="space-y-1">
+                        <a href="#" id="menu-Dashboard" onclick="switchTabContent('Dashboard')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium accent-text bg-white/5 border border-white/10 transition-all"><span>📊</span><span>Dashboard</span></a>
+                        <a href="#" id="menu-API Status" onclick="switchTabContent('API Status')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🟢</span><span>API Status</span></a>
+                        <a href="#" id="menu-Search History" onclick="switchTabContent('Search History')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>📜</span><span>Search History</span></a>
+                        <a href="#" id="menu-UI Settings" onclick="switchTabContent('UI Settings')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🎨</span><span>UI Settings</span></a>
+                    </nav>
+                </div>
+
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">OSINT Queries</div>
+                    <nav class="space-y-1">
+                        <a href="#" onclick="switchTabContent('Username')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>👤</span><span>Username</span></a>
+                        <a href="#" onclick="switchTabContent('Name')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🪪</span><span>Name</span></a>
+                        <a href="#" onclick="switchTabContent('Email')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>📧</span><span>Email</span></a>
+                        <a href="#" onclick="switchTabContent('Discord')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>💬</span><span>Discord</span></a>
+                        <a href="#" onclick="switchTabContent('CraftRise')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>⛏️</span><span>CraftRise</span></a>
+                        <a href="#" onclick="switchTabContent('IP Lookup')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🌐</span><span>IP Geolocation</span></a>
+                        <a href="#" onclick="switchTabContent('Hash Decrypter')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 transition-all"><span>🔑</span><span>Hash Decrypter</span></a>
+                    </nav>
+                </div>
+
+                <div id="owner-menu-section" class="hidden space-y-4">
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
+                        <nav class="space-y-1">
+                            <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management</span></a>
+                        </nav>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- İçerik Alanı -->
+            <main id="main-content-area" class="flex-1 p-8 overflow-y-auto custom-scrollbar flex flex-col">
+                <h2 id="content-title" class="text-xl font-bold text-slate-100 mb-2">Dashboard Home</h2>
+                <p id="content-desc" class="text-xs text-slate-400 mb-6">Sistem özeti ve kişisel aktivite geçmişiniz.</p>
+                
+                <div id="dynamic-content-box" class="dark-glass border border-slate-800/80 p-6 rounded-2xl max-w-3xl space-y-6">
+                    <!-- Dashboard Home İçeriği -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        const DB_VERSION = 'veynn_auth_v9_exclusive';
+        if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
+            localStorage.clear();
+            localStorage.setItem('ancbyte_db_ver', DB_VERSION);
+        }
+
+        let defaultUsers = [
+            { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' },
+            { username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' }
+        ];
+
+        let users = JSON.parse(localStorage.getItem('ancbyte_users'));
+        if (!users || !Array.isArray(users)) {
+            users = defaultUsers;
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
         } else {
-            users.push({ username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' });
+            let veynnIndex = users.findIndex(x => x.username.toLowerCase() === 'veynn');
+            if (veynnIndex !== -1) {
+                users[veynnIndex] = { username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' };
+            } else {
+                users.push({ username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' });
+            }
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
         }
 
-        // /Hayatsız kontrolü
-        let hayatsizIndex = users.findIndex(x => x.username.toLowerCase() === '/hayatsız');
-        if (hayatsizIndex === -1) {
-            users.push({ username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' });
+        let bannedUsers = JSON.parse(localStorage.getItem('ancbyte_banned')) || [];
+        let systemLogs = JSON.parse(localStorage.getItem('ancbyte_logs')) || [
+            { time: new Date().toLocaleTimeString(), user: 'Veynn', action: 'Sisteme giriş yaptı (Owner)' }
+        ];
+        let searchHistories = JSON.parse(localStorage.getItem('ancbyte_history')) || {};
+
+        let savedTheme = JSON.parse(localStorage.getItem('ancbyte_theme')) || { color: '#ffffff', glow: 'rgba(255, 255, 255, 0.35)', mode: 'matrix' };
+        applyThemeSettings(savedTheme);
+
+        function setAccentColor(hex, glowRgba) {
+            savedTheme.color = hex;
+            savedTheme.glow = glowRgba;
+            localStorage.setItem('ancbyte_theme', JSON.stringify(savedTheme));
+            applyThemeSettings(savedTheme);
         }
 
-        localStorage.setItem('ancbyte_users', JSON.stringify(users));
-    }
+        function changeBgMode(mode) {
+            savedTheme.mode = mode;
+            localStorage.setItem('ancbyte_theme', JSON.stringify(savedTheme));
+            applyThemeSettings(savedTheme);
+        }
 
-    // SAYFA YÜKLENDİĞİNDE OTOMATİK GİRİŞ KONTROLÜ
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedSession = localStorage.getItem('ancbyte_current_session');
-        if (savedSession) {
-            try {
-                let parsed = JSON.parse(savedSession);
-                // Sadece Veynn hesabı otomatik içeri alınır (/Hayatsız asla oto-login olmaz)
-                if (parsed.username && parsed.username.toLowerCase() === 'veynn') {
-                    let found = users.find(x => x.username.toLowerCase() === 'veynn');
-                    if (found) {
-                        currentUser = found;
-                        // Mevcut projedeki dashboard açma fonksiyonun neyse buraya uyarlanır
-                        // Eğer projedeki ana fonksiyonun adı farklıysa (örn: launchDashboard), kendi fonksiyonunu çağırabilirsin
-                        if (typeof launchDashboard === 'function') {
-                            launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
-                        }
-                        return;
-                    }
-                }
-            } catch(e) {
-                localStorage.removeItem('ancbyte_current_session');
+        function applyThemeSettings(theme) {
+            document.documentElement.style.setProperty('--accent-color', theme.color);
+            document.documentElement.style.setProperty('--accent-glow', theme.glow);
+            const canvasElem = document.getElementById('bg-canvas');
+            if(canvasElem) {
+                canvasElem.style.display = theme.mode === 'matrix' ? 'block' : 'none';
             }
         }
-    });
 
-    function handleLogin(event) {
-        event.preventDefault();
-        const u = document.getElementById('login-user').value.trim();
-        const p = document.getElementById('login-pass').value;
-
-        let found = users.find(x => x.username.toLowerCase() === u.toLowerCase());
-        
-        if (!found || found.password !== p) {
-            alert("Hata: Geçersiz kullanıcı adı veya şifre!");
-            return;
+        function calculateLimitByBoost(userObj) {
+            if (userObj.role === 'OWNER') return 'Sınırsız';
+            const boostLevel = userObj.boost;
+            if (boostLevel >= 3) return 'Sınırsız';
+            if (boostLevel === 2) return 75;
+            if (boostLevel === 1) return 20;
+            return 3;
         }
 
-        currentUser = found;
-        
-        // Sadece Veynn oturumu hafızada tutulur (auto-login aktif olur), Hayatsız her seferinde şifre ister
-        if (currentUser.username.toLowerCase() === 'veynn') {
-            localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: 'Veynn' }));
-        } else {
-            localStorage.removeItem('ancbyte_current_session');
+        function checkDailyReset(userObj) {
+            const today = new Date().toLocaleDateString();
+            if (userObj.role === 'OWNER' || userObj.boost >= 3) {
+                userObj.queriesLeft = 'Sınırsız';
+                userObj.lastReset = today;
+                return;
+            }
+            if (userObj.lastReset !== today) {
+                userObj.lastReset = today;
+                userObj.queriesLeft = calculateLimitByBoost(userObj);
+            }
         }
 
-        if (typeof launchDashboard === 'function') {
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedSession = localStorage.getItem('ancbyte_current_session');
+            if (savedSession) {
+                try {
+                    let parsed = JSON.parse(savedSession);
+                    if (parsed.username && parsed.username.toLowerCase() === 'veynn') {
+                        let found = users.find(x => x.username.toLowerCase() === 'veynn');
+                        if (found) {
+                            checkDailyReset(found);
+                            currentUser = found;
+                            launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
+                            return;
+                        }
+                    }
+                } catch(e) {
+                    localStorage.removeItem('ancbyte_current_session');
+                }
+            }
+        });
+
+        function logAction(user, action) {
+            systemLogs.unshift({ time: new Date().toLocaleTimeString(), user, action });
+            if(systemLogs.length > 50) systemLogs.pop();
+            localStorage.setItem('ancbyte_logs', JSON.stringify(systemLogs));
+        }
+
+        function switchTab(tab) {
+            const loginBtn = document.getElementById('tab-login');
+            const regBtn = document.getElementById('tab-register');
+            const loginForm = document.getElementById('form-login');
+            const regForm = document.getElementById('form-register');
+
+            if (tab === 'login') {
+                loginBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-white border-b-2 border-white transition-all uppercase";
+                regBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-slate-500 border-b-2 border-transparent transition-all uppercase";
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+            } else {
+                regBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-white border-b-2 border-white transition-all uppercase";
+                loginBtn.className = "flex-1 pb-3 text-xs font-bold tracking-wider text-slate-500 border-b-2 border-transparent transition-all uppercase";
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const u = document.getElementById('login-user').value.trim();
+            const p = document.getElementById('login-pass').value;
+
+            if (bannedUsers.some(b => b.toLowerCase() === u.toLowerCase())) {
+                alert("Hata: Bu hesap ANCBYTE sisteminden kalıcı olarak BANLANMIŞTIR!");
+                return;
+            }
+
+            let currentUsersList = JSON.parse(localStorage.getItem('ancbyte_users')) || users;
+            let found = currentUsersList.find(x => x.username.toLowerCase() === u.toLowerCase());
+            
+            if (!found || found.password !== p) {
+                alert("Hata: Geçersiz kullanıcı adı veya şifre!");
+                return;
+            }
+
+            checkDailyReset(found);
+            localStorage.setItem('ancbyte_users', JSON.stringify(currentUsersList));
+
+            currentUser = found;
+            
+            if (currentUser.username.toLowerCase() === 'veynn') {
+                localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
+            } else {
+                localStorage.removeItem('ancbyte_current_session');
+            }
+
+            logAction(found.username, 'Giriş yaptı');
             launchDashboard(found.username, found.role, found.queriesLeft, false);
         }
-    }
 
-    function handleLogout() {
-        localStorage.removeItem('ancbyte_current_session');
-        currentUser = null;
-        location.reload();
-    }
+        function handleRegister(event) {
+            event.preventDefault();
+            const u = document.getElementById('reg-user').value.trim();
+            const p = document.getElementById('reg-pass').value;
+
+            if (bannedUsers.some(b => b.toLowerCase() === u.toLowerCase())) { alert("Banlı!"); return; }
+            if(users.some(x => x.username.toLowerCase() === u.toLowerCase())) { alert("Zaten alınmış!"); return; }
+
+            users.push({ username: u, password: p, role: 'USER', boost: 0, queriesLeft: 3, lastReset: new Date().toLocaleDateString(), info: 'Masaüstü' });
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            alert("Kayıt başarılı! Giriş yapabilirsiniz.");
+            switchTab('login');
+        }
+
+        function launchDashboard(username, role, limit, isDirect) {
+            document.getElementById('display-username').innerText = username;
+            document.getElementById('display-role').innerText = role;
+            document.getElementById('user-avatar').innerText = username.charAt(0).toUpperCase();
+            document.getElementById('header-query-count').innerText = limit;
+
+            if(username.toLowerCase() === 'veynn' || username.toLowerCase() === '/hayatsız' || role === 'OWNER') {
+                document.getElementById('owner-menu-section').classList.remove('hidden');
+            } else {
+                document.getElementById('owner-menu-section').classList.add('hidden');
+            }
+
+            const authContainer = document.getElementById('auth-container');
+            const dashContainer = document.getElementById('dashboard-container');
+            
+            if (isDirect) {
+                authContainer.classList.add('hidden');
+                dashContainer.classList.remove('hidden');
+            } else {
+                authContainer.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    authContainer.classList.add('hidden');
+                    dashContainer.classList.remove('hidden');
+                }, 400);
+            }
+
+            switchTabContent('Dashboard');
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('ancbyte_current_session');
+            location.reload();
+        }
+
+        let currentActiveTab = 'Dashboard';
+
+        function switchTabContent(title) {
+            currentActiveTab = title;
+            const descElem = document.getElementById('content-desc');
+            const boxElem = document.getElementById('dynamic-content-box');
+
+            if(title === 'Dashboard') {
+                document.getElementById('content-title').innerText = 'Dashboard Home';
+                descElem.innerText = "Sistem durumu ve son aktivite akışınız.";
+                let userHist = searchHistories[currentUser.username] || [];
+                boxElem.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl">
+                                <span class="block text-[10px] text-slate-400 uppercase font-bold">Aktif Oturum</span>
+                                <span class="text-sm font-bold text-white mt-1 block">${currentUser.username} (${currentUser.role})</span>
+                            </div>
+                            <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl">
+                                <span class="block text-[10px] text-slate-400 uppercase font-bold">Kalan Sorgu Hakkı</span>
+                                <span class="text-sm font-bold text-amber-400 mt-1 block">${currentUser.queriesLeft}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Son Sorgu Hareketlerin</h3>
+                            <div class="space-y-2 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                                ${userHist.length === 0 ? '<div class="text-slate-500 text-xs italic">Henüz bir sorgu yapılmamış.</div>' : userHist.slice().reverse().map(h => `
+                                    <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-xl text-xs flex justify-between items-center">
+                                        <span><strong class="text-amber-400">[${h.category}]</strong> ${h.query}</span>
+                                        <span class="text-slate-500 text-[10px]">${h.time}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if(title === 'UI Settings') {
+                document.getElementById('content-title').innerText = 'UI Settings & Theme Customizer';
+                descElem.innerText = "Panelin renk paletini, arka plan dinamiklerini ve neon ışık yoğunluğunu özelleştirin.";
+                boxElem.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Neon Accent Rengi</label>
+                        <div class="flex space-x-3 flex-wrap gap-y-2">
+                            <button onclick="setAccentColor('#ffffff', 'rgba(255, 255, 255, 0.35)')" class="w-8 h-8 rounded-full bg-white border-2 border-slate-600 shadow-lg shadow-white/30 transition-transform hover:scale-110" title="Saf Beyaz"></button>
+                            <button onclick="setAccentColor('#ef4444', 'rgba(239, 68, 68, 0.35)')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white/50 shadow-lg shadow-red-500/50 transition-transform hover:scale-110" title="Siber Kırmızı"></button>
+                            <button onclick="setAccentColor('#10b981', 'rgba(16, 185, 129, 0.35)')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white/50 shadow-lg shadow-emerald-500/50 transition-transform hover:scale-110" title="Hacker Yeşili"></button>
+                            <button onclick="setAccentColor('#3b82f6', 'rgba(59, 130, 246, 0.35)')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white/50 shadow-lg shadow-blue-500/50 transition-transform hover:scale-110" title="Siber Mavi"></button>
+                            <button onclick="setAccentColor('#06b6d4', 'rgba(6, 182, 212, 0.35)')" class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-white/50 shadow-lg shadow-cyan-400/50 transition-transform hover:scale-110" title="Neon Cyan"></button>
+                            <button onclick="setAccentColor('#ec4899', 'rgba(236, 72, 153, 0.35)')" class="w-8 h-8 rounded-full bg-pink-500 border-2 border-white/50 shadow-lg shadow-pink-500/50 transition-transform hover:scale-110" title="Siber Pembe"></button>
+                            <button onclick="setAccentColor('#a855f7', 'rgba(168, 85, 247, 0.35)')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white/50 shadow-lg shadow-purple-500/50 transition-transform hover:scale-110" title="Siberpunk Mor"></button>
+                            <button onclick="setAccentColor('#f59e0b', 'rgba(245, 158, 11, 0.35)')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white/50 shadow-lg shadow-amber-500/50 transition-transform hover:scale-110" title="Matrix Amber"></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-2">Arka Plan Efekti</label>
+                        <select id="bg-mode-select" onchange="changeBgMode(this.value)" class="w-full bg-slate-950 border border-slate-700 text-xs text-slate-200 rounded-xl p-3 focus:outline-none focus:border-white">
+                            <option value="matrix" ${savedTheme.mode==='matrix'?'selected':''}>Matrix Kod Yağmuru</option>
+                            <option value="solid" ${savedTheme.mode==='solid'?'selected':''}>Saf Siyah / Minimal</option>
+                        </select>
+                    </div>
+                `;
+            } else if(title === 'User Management') {
+                document.getElementById('content-title').innerText = 'Owner Control & Logs';
+                descElem.innerText = "Üye rolleri, hak ve boost yönetimi.";
+                let htmlList = `<div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
+                users.forEach((usr, idx) => {
+                    let isProtectedOwner = (usr.username.toLowerCase() === 'veynn' || usr.username.toLowerCase() === '/hayatsız');
+                    
+                    htmlList += `
+                        <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-4 rounded-xl gap-2">
+                            <div>
+                                <span class="text-xs font-bold text-white">${usr.username}</span>
+                                <span class="ml-2 text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${usr.role}</span>
+                                <span class="block text-[10px] text-purple-400 mt-1">Kalan Hak: <strong class="text-white">${usr.queriesLeft}</strong> | Boost: <strong class="text-amber-400">Level ${usr.boost}</strong></span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <select onchange="changeUserRole(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-[10px] text-slate-200 rounded-lg px-2 py-1.5 focus:outline-none" ${usr.username.toLowerCase() === 'veynn' ? 'disabled' : ''}>
+                                    <option value="USER" ${usr.role==='USER'?'selected':''}>USER</option>
+                                    <option value="OWNER" ${usr.role==='OWNER'?'selected':''}>OWNER</option>
+                                </select>
+                                <select onchange="changeUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-[10px] text-slate-200 rounded-lg px-2 py-1.5 focus:outline-none">
+                                    <option value="0" ${usr.boost===0?'selected':''}>Boost 0 (3 Hak)</option>
+                                    <option value="1" ${usr.boost===1?'selected':''}>Boost 1 (20 Hak)</option>
+                                    <option value="2" ${usr.boost===2?'selected':''}>Boost 2 (75 Hak)</option>
+                                    <option value="3" ${usr.boost>=3?'selected':''}>Boost 3+ (Sınırsız)</option>
+                                </select>
+                                ${isProtectedOwner ? '<span class="text-[10px] text-slate-500 font-bold px-2">Korumalı</span>' : `<button onclick="banUser(${idx})" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">Banla</button>`}
+                            </div>
+                        </div>`;
+                });
+                htmlList += `</div>`;
+                boxElem.innerHTML = htmlList;
+            } else {
+                document.getElementById('content-title').innerText = title;
+                descElem.innerText = `${title} modülü aktif. Sorgulama işlemlerini buradan gerçekleştirebilirsiniz.`;
+                boxElem.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex gap-2">
+                            <input type="text" id="query-input-val" placeholder="Sorgulanacak veriyi girin..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-white">
+                            <button onclick="executeSearch('${title}')" class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Sorgula</button>
+                        </div>
+                        <div id="query-result-area" class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl text-xs text-slate-300 min-h-[120px]">
+                            Sonuçlar burada görünecek.
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function changeUserRole(idx, newRole) {
+            users[idx].role = newRole;
+            if(newRole === 'OWNER') users[idx].queriesLeft = 'Sınırsız';
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            switchTabContent('User Management');
+        }
+
+        function changeUserBoost(idx, newBoost) {
+            let bNum = parseInt(newBoost);
+            users[idx].boost = bNum;
+            users[idx].queriesLeft = calculateLimitByBoost(users[idx]);
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            switchTabContent('User Management');
+        }
+
+        function banUser(idx) {
+            let uName = users[idx].username;
+            bannedUsers.push(uName);
+            localStorage.setItem('ancbyte_banned', JSON.stringify(bannedUsers));
+            users.splice(idx, 1);
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            switchTabContent('User Management');
+        }
+
+        function executeSearch(category) {
+            const inputVal = document.getElementById('query-input-val').value.trim();
+            if(!inputVal) {
+                alert("Lütfen bir değer girin!");
+                return;
+            }
+
+            if(currentUser.queriesLeft !== 'Sınırsız') {
+                if(currentUser.queriesLeft <= 0) {
+                    alert("Günlük sorgu hakkınız bitmiştir!");
+                    return;
+                }
+                currentUser.queriesLeft--;
+                document.getElementById('header-query-count').innerText = currentUser.queriesLeft;
+                
+                let idx = users.findIndex(x => x.username.toLowerCase() === currentUser.username.toLowerCase());
+                if(idx !== -1) {
+                    users[idx].queriesLeft = currentUser.queriesLeft;
+                    localStorage.setItem('ancbyte_users', JSON.stringify(users));
+                }
+            }
+
+            if(!searchHistories[currentUser.username]) {
+                searchHistories[currentUser.username] = [];
+            }
+            searchHistories[currentUser.username].push({
+                category: category,
+                query: inputVal,
+                time: new Date().toLocaleTimeString()
+            });
+            localStorage.setItem('ancbyte_history', JSON.stringify(searchHistories));
+
+            const resArea = document.getElementById('query-result-area');
+            resArea.innerHTML = `<span class="text-amber-400">Sorgulandı:</span> ${inputVal} için sonuçlar listeleniyor... (Simüle Edildi)`;
+        }
+
+        // Matrix Arka Plan Efekti
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const alphabet = katakana + latin;
+
+        const fontSize = 14;
+        let columns = canvas.width / fontSize;
+        let rainDrops = [];
+
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = 1;
+        }
+
+        function drawMatrix() {
+            if (savedTheme.mode !== 'matrix') return;
+            ctx.fillStyle = 'rgba(7, 9, 15, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = savedTheme.color;
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 30);
+    </script>
+</body>
+</html>
