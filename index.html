@@ -181,7 +181,7 @@
     <script>
         let currentUser = null;
 
-        const DB_VERSION = 'veynn_auth_v9_exclusive';
+        const DB_VERSION = 'veynn_auth_v10_exclusive';
         if (localStorage.getItem('ancbyte_db_ver') !== DB_VERSION) {
             localStorage.clear();
             localStorage.setItem('ancbyte_db_ver', DB_VERSION);
@@ -203,6 +203,12 @@
             } else {
                 users.push({ username: 'Veynn', password: '0409kyzex', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Main Owner' });
             }
+            
+            let hayatsizIndex = users.findIndex(x => x.username.toLowerCase() === '/hayatsız');
+            if (hayatsizIndex === -1) {
+                users.push({ username: '/Hayatsız', password: '/HayatsızANC', role: 'OWNER', boost: 0, queriesLeft: 'Sınırsız', lastReset: new Date().toLocaleDateString(), info: 'Co-Owner' });
+            }
+            
             localStorage.setItem('ancbyte_users', JSON.stringify(users));
         }
 
@@ -264,8 +270,8 @@
             if (savedSession) {
                 try {
                     let parsed = JSON.parse(savedSession);
-                    if (parsed.username && parsed.username.toLowerCase() === 'veynn') {
-                        let found = users.find(x => x.username.toLowerCase() === 'veynn');
+                    if (parsed.username) {
+                        let found = users.find(x => x.username.toLowerCase() === parsed.username.toLowerCase());
                         if (found) {
                             checkDailyReset(found);
                             currentUser = found;
@@ -326,12 +332,7 @@
             localStorage.setItem('ancbyte_users', JSON.stringify(currentUsersList));
 
             currentUser = found;
-            
-            if (currentUser.username.toLowerCase() === 'veynn') {
-                localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
-            } else {
-                localStorage.removeItem('ancbyte_current_session');
-            }
+            localStorage.setItem('ancbyte_current_session', JSON.stringify({ username: found.username }));
 
             logAction(found.username, 'Giriş yaptı');
             launchDashboard(found.username, found.role, found.queriesLeft, false);
@@ -452,7 +453,8 @@
                 descElem.innerText = "Üye rolleri, hak ve boost yönetimi.";
                 let htmlList = `<div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">`;
                 users.forEach((usr, idx) => {
-                    let isProtectedOwner = (usr.username.toLowerCase() === 'veynn' || usr.username.toLowerCase() === '/hayatsız');
+                    // Sadece 'Veynn' korumalı yapıldı, /Hayatsız serbest bırakıldı.
+                    let isProtectedOwner = (usr.username.toLowerCase() === 'veynn');
                     
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-4 rounded-xl gap-2">
