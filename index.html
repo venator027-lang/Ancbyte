@@ -181,16 +181,13 @@
             { time: new Date().toLocaleTimeString(), user: 'Veynn', action: 'Sisteme giriş yaptı (Owner)' }
         ];
 
+        // Sayfa yüklendiğinde oturum kontrolü ve kalıcılık
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('ancbyte_current_session');
             if (savedUser) {
                 const uObj = JSON.parse(savedUser);
                 let freshUser = users.find(x => x.username === uObj.username);
-                if (freshUser) {
-                    currentUser = freshUser;
-                } else {
-                    currentUser = uObj;
-                }
+                currentUser = freshUser ? freshUser : uObj;
                 launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
             }
         });
@@ -327,15 +324,15 @@
                 users.forEach((usr, idx) => {
                     let boostText = usr.boost === 0 ? 'Boost Yok (1 Hak)' : (usr.boost === 1 ? '1 Boost (30 Hak)' : (usr.boost === 2 ? '2 Boost (65 Hak)' : '3+ Boost (Sınırsız)'));
                     
-                    // Kendi hesabınsa veya karşındaki kişi korumalı bir Owner ise (Veynn veya /Hayatsız) rol değiştirmeyi ve kicklemeyi engelle/gizle
-                    let isProtectedOwner = (usr.username === 'Veynn' || usr.username === '/Hayatsız');
+                    // Sadece SANA (Veynn) özel koruma: Başka bir owner olsan bile sadece Veynn dokunulmazdır.
+                    let isProtectedVeynn = (usr.username === 'Veynn');
                     let isSelf = (currentUser && usr.username === currentUser.username);
 
                     let controlsHtml = '';
                     if (isSelf) {
                         controlsHtml = `<span class="text-[10px] text-slate-500 font-semibold px-2 py-1 italic">(Aktif Hesabınız)</span>`;
-                    } else if (isProtectedOwner) {
-                        controlsHtml = `<span class="text-[10px] text-amber-500/80 font-semibold px-2 py-1">(Korunan Owner)</span>`;
+                    } else if (isProtectedVeynn) {
+                        controlsHtml = `<span class="text-[10px] text-amber-500/80 font-semibold px-2 py-1">(Ana Owner - Korunuyor)</span>`;
                     } else {
                         controlsHtml = `
                             <select onchange="updateUserRole(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
@@ -419,8 +416,8 @@
 
         function updateUserRole(index, roleVal) {
             let targetUser = users[index];
-            if(targetUser.username === 'Veynn' || targetUser.username === '/Hayatsız') {
-                alert("Korunan Owner hesaplarının rolleri değiştirilemez!");
+            if(targetUser.username === 'Veynn') {
+                alert("Ana Owner (Veynn) kullanıcısının rolü değiştirilemez!");
                 return;
             }
             users[index].role = roleVal;
@@ -445,8 +442,8 @@
 
         function kickUser(index) {
             let targetUser = users[index];
-            if(targetUser.username === 'Veynn' || targetUser.username === '/Hayatsız') {
-                alert("Hata: Korunan Owner hesapları sistemden atılamaz!");
+            if(targetUser.username === 'Veynn') {
+                alert("Hata: Ana Owner (Veynn) sistemden atılamaz!");
                 return;
             }
             if(targetUser.username === currentUser.username) {
