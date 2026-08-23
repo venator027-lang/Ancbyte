@@ -30,7 +30,7 @@
     <canvas id="bg-canvas"></canvas>
 
     <!-- Auth Container (Giriş Ekranı) -->
-    <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl border border-slate-800/80 transition-all duration-500">
+    <div id="auth-container" class="w-full max-w-md dark-glass rounded-2xl p-8 shadow-2xl border border-slate-800/85 transition-all duration-500">
         <div class="flex items-center space-x-3 mb-8">
             <div class="w-10 h-10 rounded-xl overflow-hidden border border-red-500/30 bg-slate-950 flex items-center justify-center shrink-0 shadow-lg shadow-red-950/40">
                 <svg viewBox="0 0 100 100" class="w-full h-full">
@@ -160,9 +160,14 @@
                 
                 <div id="dynamic-content-box" class="dark-glass border border-slate-800/80 p-6 rounded-2xl max-w-2xl">
                     <div id="query-limit-info" class="text-xs text-slate-400 mb-3">Owner, no daily search cap.</div>
-                    <div class="flex space-x-3">
+                    <div class="flex space-x-3 mb-4">
                         <input type="text" id="search-input" value="295196201253470210" class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
                         <button onclick="executeSearch()" class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
+                    </div>
+                    <!-- Sonuçların Döküleceği Alan -->
+                    <div id="search-results-area" class="hidden mt-4 pt-4 border-t border-slate-800">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest block mb-2">Sorgu Sonuçları:</span>
+                        <div id="search-results-content" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 space-y-1 max-h-48 overflow-y-auto custom-scrollbar"></div>
                     </div>
                 </div>
             </main>
@@ -181,7 +186,6 @@
             { time: new Date().toLocaleTimeString(), user: 'Veynn', action: 'Sisteme giriş yaptı (Owner)' }
         ];
 
-        // Sadece senin (Veynn) oturumun F5'te kalıcı olsun, diğerleri giriş ekranına atılsın
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('ancbyte_current_session');
             if (savedUser) {
@@ -191,7 +195,6 @@
                     currentUser = freshUser ? freshUser : uObj;
                     launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
                 } else {
-                    // Diğer kullanıcılar F5 atarsa oturumu temizle ve giriş ekranında bırak
                     localStorage.removeItem('ancbyte_current_session');
                 }
             }
@@ -252,7 +255,6 @@
 
             currentUser = { username: u, role, boostCount: boost, queriesLeft: limit };
             
-            // Oturumu sadece senin için kalıcı kaydediyoruz, diğer kullanıcılar her seferinde giriş yapacak
             if (u === 'Veynn') {
                 localStorage.setItem('ancbyte_current_session', JSON.stringify(currentUser));
             }
@@ -390,15 +392,20 @@
                 descElem.innerText = title + " verilerini sorgulamak ve analiz etmek için bu alanı kullanabilirsiniz.";
                 boxElem.innerHTML = `
                     <div id="query-limit-info" class="text-xs text-purple-400 mb-3 font-semibold">${limitText}</div>
-                    <div class="flex space-x-3">
+                    <div class="flex space-x-3 mb-4">
                         <input type="text" id="search-input" placeholder="Sorgulanacak değeri girin..." class="flex-1 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-white transition-colors">
                         <button onclick="executeSearch()" class="bg-white hover:bg-slate-200 text-black text-xs font-bold px-6 py-3 rounded-xl transition-all">Search</button>
+                    </div>
+                    <!-- Sonuçların Döküleceği Alan -->
+                    <div id="search-results-area" class="hidden mt-4 pt-4 border-t border-slate-800">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest block mb-2">Sorgu Sonuçları:</span>
+                        <div id="search-results-content" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 space-y-1 max-h-48 overflow-y-auto custom-scrollbar"></div>
                     </div>`;
             }
         }
 
         function executeSearch() {
-            const val = document.getElementById('search-input').value;
+            const val = document.getElementById('search-input').value.trim();
             if(!val) return;
 
             if(currentUser.role !== 'OWNER') {
@@ -417,8 +424,27 @@
             }
 
             logAction(currentUser.username, `${currentActiveTab} araması yaptı: ${val}`);
-            alert(currentActiveTab + " sorgusu başarıyla gerçekleştirildi!");
-            switchTabContent(currentActiveTab);
+
+            // Alert yerine panel içerisinde dinamik sonuç kutusunu dolduruyoruz
+            const resultsArea = document.getElementById('search-results-area');
+            const resultsContent = document.getElementById('search-results-content');
+            
+            if (resultsArea && resultsContent) {
+                resultsArea.classList.remove('hidden');
+                
+                // Şimdilik OSINT verisi bağlı olmadığı için simüle edilmiş arama çıktısı basıyoruz
+                resultsContent.innerHTML = `
+                    <div class="text-slate-500">[>>] Sorgulanan hedef: <span class="text-white">${val}</span> (${currentActiveTab})</div>
+                    <div class="text-amber-400">[!] Durum: Veritabanında eşleşen kayıt aranıyor...</div>
+                    <div class="text-red-400 mt-2">[-] Sonuç: Şu an sistemde aktif OSINT modülü/veritabanı yüklü değil.</div>
+                    <div class="text-slate-400 mt-1">[i] Örnek veri satırları (API bağlandığında buraya dökülecek):</div>
+                    <div class="pl-2 border-l border-slate-700 text-slate-500 mt-1">
+                        <div>> ID: N/A</div>
+                        <div>> Username: ${val}</div>
+                        <div>> Leak Match: Bulunamadı</div>
+                    </div>
+                `;
+            }
         }
 
         function updateUserRole(index, roleVal) {
