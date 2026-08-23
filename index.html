@@ -93,8 +93,17 @@
             </div>
 
             <div class="flex items-center space-x-3">
+                <!-- Kalan Sorgu Hakkı Göstergesi -->
+                <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+                    <span class="text-xs">⚡</span>
+                    <div>
+                        <span class="block text-[9px] text-amber-400 uppercase tracking-widest font-bold">Kalan Hak</span>
+                        <span id="header-query-count" class="block text-xs font-bold text-slate-100 leading-none">1</span>
+                    </div>
+                </div>
+
                 <button class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 transition-all">
-                    <span>🎫</span> <span>Tickets & Help</span>
+                    <span>🎫</span> <span>Tickets</span>
                 </button>
                 <button class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 transition-all">
                     <span>💬</span> <span>Discord</span>
@@ -132,18 +141,12 @@
                     </nav>
                 </div>
 
-                <!-- Sadece Owner'lara Görünen Özel Menüler -->
+                <!-- Sadece Owner'lara (Veynn ve /Hayatsız) Görünen Tek Çatı Altında Owner Control & Logs -->
                 <div id="owner-menu-section" class="hidden space-y-4">
                     <div>
                         <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 px-3 mb-2">Owner Control</div>
                         <nav class="space-y-1">
-                            <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management</span></a>
-                        </nav>
-                    </div>
-                    <div>
-                        <div class="text-[10px] font-bold uppercase tracking-widest text-purple-400 px-3 mb-2">System Logs</div>
-                        <nav class="space-y-1">
-                            <a href="#" onclick="switchTabContent('Audit Logs')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-purple-300 hover:bg-purple-500/10 transition-all border border-purple-500/30"><span>📋</span><span>Audit Trail & Logs</span></a>
+                            <a href="#" onclick="switchTabContent('User Management')" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-all border border-amber-500/30"><span>🛡️</span><span>User Management & Logs</span></a>
                         </nav>
                     </div>
                 </div>
@@ -166,10 +169,10 @@
     </div>
 
     <script>
-        let currentUser = { username: 'Veynn', role: 'OWNER', boostCount: 3 };
+        let currentUser = { username: 'Veynn', role: 'OWNER', boostCount: 3, queriesLeft: 'Sınırsız' };
 
         let users = JSON.parse(localStorage.getItem('ancbyte_users')) || [
-            { username: 'Veynn', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', info: 'Main Admin' },
+            { username: 'Veynn', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', info: 'Main Owner' },
             { username: '/Hayatsız', role: 'OWNER', boost: 3, queriesLeft: 'Sınırsız', info: 'Co-Owner' }
         ];
 
@@ -211,15 +214,17 @@
             let boost = 0;
             let limit = 1;
 
-            if ((u === 'Veynn' && p === 'Veynn123') || (u === '/Hayatsız' && p === '/HayatsızΨ123') || u === 'Veynn') {
-                role = "OWNER";
-                boost = 3;
-                limit = 9999;
+            // Kayıtlı kullanıcılardan verisini çek
+            const found = users.find(x => x.username === u);
+            if (found) {
+                role = found.role;
+                boost = found.boost;
+                limit = found.queriesLeft;
             } else {
-                const found = users.find(x => x.username === u);
-                if (found) {
-                    boost = found.boost;
-                    limit = found.queriesLeft;
+                if (u === 'Veynn') {
+                    role = "OWNER";
+                    boost = 3;
+                    limit = 'Sınırsız';
                 } else {
                     const clientInfo = navigator.userAgent.includes("Mobile") ? "Mobil Cihaz" : "Masaüstü Bilgisayar";
                     users.push({ username: u, role: 'USER', boost: 0, queriesLeft: 1, info: clientInfo + " (" + new Date().toLocaleTimeString() + ")" });
@@ -229,7 +234,7 @@
 
             currentUser = { username: u, role, boostCount: boost, queriesLeft: limit };
             logAction(u, 'Giriş yaptı');
-            launchDashboard(u, role);
+            launchDashboard(u, role, limit);
         }
 
         function handleRegister(e) {
@@ -250,12 +255,13 @@
             switchTab('login');
         }
 
-        function launchDashboard(username, role) {
+        function launchDashboard(username, role, limit) {
             document.getElementById('display-username').innerText = username;
             document.getElementById('display-role').innerText = role;
             document.getElementById('user-avatar').innerText = username.charAt(0).toUpperCase();
+            document.getElementById('header-query-count').innerText = limit;
 
-            if(role === 'OWNER') {
+            if(username === 'Veynn' || username === '/Hayatsız' || role === 'OWNER') {
                 document.getElementById('owner-menu-section').classList.remove('hidden');
             } else {
                 document.getElementById('owner-menu-section').classList.add('hidden');
@@ -276,53 +282,63 @@
 
         function switchTabContent(title) {
             currentActiveTab = title;
-            document.getElementById('content-title').innerText = title + (['User Management', 'Audit Logs'].includes(title) ? '' : ' Lookup');
+            document.getElementById('content-title').innerText = title === 'User Management' ? 'Owner Control & Logs' : (title + ' Lookup');
             
             const descElem = document.getElementById('content-desc');
             const boxElem = document.getElementById('dynamic-content-box');
 
             if(title === 'User Management') {
-                descElem.innerText = "Sisteme giriş yapan üyeleri görüntüleyebilir, boost seviyelerini düzenleyebilir ve bağlantıyı paylaşanları sistemden atabilirsiniz.";
+                descElem.innerText = "Tüm üyelerin rollerini (OWNER/USER), boost/sorgu haklarını düzenleyebilir, kullanıcıları sistemden atabilir ve canlı log akışını inceleyebilirsiniz.";
                 
-                let htmlList = `<div class="space-y-3"><h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-4">Kayıtlı Üyeler ve Boost Hakları</h3><div class="space-y-2">`;
+                let htmlList = `
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">Kayıtlı Üyeler ve Rol/Boost Yönetimi</h3>
+                            <div class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-2">`;
+                
                 users.forEach((usr, idx) => {
                     let boostText = usr.boost === 0 ? 'Boost Yok (1 Hak)' : (usr.boost === 1 ? '1 Boost (30 Hak)' : (usr.boost === 2 ? '2 Boost (65 Hak)' : '3+ Boost (Sınırsız)'));
                     htmlList += `
                         <div class="flex items-center justify-between bg-slate-950/80 border border-slate-800 p-3 rounded-xl">
                             <div>
                                 <span class="text-xs font-bold text-white">${usr.username}</span>
-                                <span class="ml-2 text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${usr.role}</span>
+                                <span class="ml-2 text-[9px] px-2 py-0.5 rounded ${usr.role === 'OWNER' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-300'} font-bold">${usr.role}</span>
                                 <span class="block text-[10px] text-purple-400 mt-1">Durum: ${boostText} | Kalan Hak: ${usr.queriesLeft}</span>
                             </div>
                             <div class="flex items-center space-x-2">
-                                ${usr.role !== 'OWNER' ? `
-                                    <select onchange="updateUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
-                                        <option value="0" ${usr.boost==0?'selected':''}>0 Boost</option>
-                                        <option value="1" ${usr.boost==1?'selected':''}>1 Boost (30)</option>
-                                        <option value="2" ${usr.boost==2?'selected':''}>2 Boost (65)</option>
-                                        <option value="3" ${usr.boost==3?'selected':''}>3+ Boost (Sınırsız)</option>
-                                    </select>
-                                    <button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Kick</button>` 
-                                    : `<span class="text-[10px] text-slate-500">Protected</span>`}
+                                <select onchange="updateUserRole(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
+                                    <option value="USER" ${usr.role==='USER'?'selected':''}>USER</option>
+                                    <option value="OWNER" ${usr.role==='OWNER'?'selected':''}>OWNER</option>
+                                </select>
+                                <select onchange="updateUserBoost(${idx}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-2 py-1">
+                                    <option value="0" ${usr.boost==0?'selected':''}>0 Boost</option>
+                                    <option value="1" ${usr.boost==1?'selected':''}>1 Boost (30)</option>
+                                    <option value="2" ${usr.boost==2?'selected':''}>2 Boost (65)</option>
+                                    <option value="3" ${usr.boost==3?'selected':''}>3+ Boost (Sınırsız)</option>
+                                </select>
+                                <button onclick="kickUser(${idx})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Kick</button>
                             </div>
                         </div>`;
                 });
                 htmlList += `</div></div>`;
-                boxElem.innerHTML = htmlList;
-            } else if(title === 'Audit Logs') {
-                descElem.innerText = "Sistem içerisindeki tüm kullanıcı hareketleri, sorgular ve girişler gerçek zamanlı olarak burada kayıt altına alınır.";
+
+                // Log Tablosu Bölümü
+                htmlList += `
+                    <div>
+                        <h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">Canlı Sistem Günlükleri (Audit Trail)</h3>
+                        <div class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-2 bg-slate-950/50 p-2 rounded-xl border border-slate-800">`;
                 
-                let logHtml = `<div class="space-y-3"><h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-4">Canlı Sistem Günlükleri (Audit Trail)</h3><div class="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar">`;
                 systemLogs.forEach(log => {
-                    logHtml += `
-                        <div class="bg-slate-950/80 border border-slate-800/80 p-2.5 rounded-lg flex items-center justify-between text-[11px]">
+                    htmlList += `
+                        <div class="bg-slate-950/80 border border-slate-800/80 p-2 rounded-lg flex items-center justify-between text-[11px]">
                             <div><span class="text-slate-500 mr-2">[${log.time}]</span><strong class="text-white">${log.user}</strong>: <span class="text-slate-300">${log.action}</span></div>
                         </div>`;
                 });
-                logHtml += `</div></div>`;
-                boxElem.innerHTML = logHtml;
+                htmlList += `</div></div></div>`;
+
+                boxElem.innerHTML = htmlList;
             } else {
-                let limitText = currentUser.role === 'OWNER' ? 'Owner, no daily search cap.' : (currentUser.queriesLeft === 'Sınırsız' ? '3+ Boost aktif, Sınırsız sorgu hakkı.' : `Kalan sorgu hakkınız: ${currentUser.queriesLeft}`);
+                let limitText = currentUser.role === 'OWNER' ? 'Owner, no daily search cap.' : `Kalan sorgu hakkınız: ${currentUser.queriesLeft}`;
                 descElem.innerText = title + " verilerini sorgulamak ve analiz etmek için bu alanı kullanabilirsiniz.";
                 boxElem.innerHTML = `
                     <div id="query-limit-info" class="text-xs text-purple-400 mb-3 font-semibold">${limitText}</div>
@@ -343,7 +359,8 @@
                     return;
                 }
                 currentUser.queriesLeft--;
-                // Local'deki kullanıcıyı güncelle
+                document.getElementById('header-query-count').innerText = currentUser.queriesLeft;
+                
                 let uObj = users.find(x => x.username === currentUser.username);
                 if(uObj) {
                     uObj.queriesLeft = currentUser.queriesLeft;
@@ -354,6 +371,16 @@
             logAction(currentUser.username, `${currentActiveTab} araması yaptı: ${val}`);
             alert(currentActiveTab + " sorgusu başarıyla gerçekleştirildi!");
             switchTabContent(currentActiveTab);
+        }
+
+        function updateUserRole(index, roleVal) {
+            users[index].role = roleVal;
+            if(roleVal === 'OWNER') {
+                users[index].queriesLeft = 'Sınırsız';
+            }
+            localStorage.setItem('ancbyte_users', JSON.stringify(users));
+            logAction(currentUser.username, `${users[index].username} kullanıcısının rolünü ${roleVal} olarak güncelledi`);
+            switchTabContent('User Management');
         }
 
         function updateUserBoost(index, boostVal) {
@@ -367,7 +394,7 @@
         }
 
         function kickUser(index) {
-            if(confirm("Bu kullanıcıyı sistemden atmak (banlamak) istediğinize emin misiniz?")) {
+            if(confirm("Bu kullanıcıyı sistemden atmak istediğinize emin misiniz?")) {
                 let kicked = users[index].username;
                 users.splice(index, 1);
                 localStorage.setItem('ancbyte_users', JSON.stringify(users));
