@@ -181,14 +181,19 @@
             { time: new Date().toLocaleTimeString(), user: 'Veynn', action: 'Sisteme giriş yaptı (Owner)' }
         ];
 
-        // Sayfa yüklendiğinde oturum kontrolü ve kalıcılık
+        // Sadece senin (Veynn) oturumun F5'te kalıcı olsun, diğerleri giriş ekranına atılsın
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('ancbyte_current_session');
             if (savedUser) {
                 const uObj = JSON.parse(savedUser);
-                let freshUser = users.find(x => x.username === uObj.username);
-                currentUser = freshUser ? freshUser : uObj;
-                launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
+                if (uObj.username === 'Veynn') {
+                    let freshUser = users.find(x => x.username === 'Veynn');
+                    currentUser = freshUser ? freshUser : uObj;
+                    launchDashboard(currentUser.username, currentUser.role, currentUser.queriesLeft, true);
+                } else {
+                    // Diğer kullanıcılar F5 atarsa oturumu temizle ve giriş ekranında bırak
+                    localStorage.removeItem('ancbyte_current_session');
+                }
             }
         });
 
@@ -217,8 +222,8 @@
             }
         }
 
-        function handleLogin(e) {
-            e.preventDefault();
+        function handleLogin(event) {
+            event.preventDefault();
             const u = document.getElementById('login-user').value.trim();
             const p = document.getElementById('login-pass').value.trim();
 
@@ -246,13 +251,18 @@
             }
 
             currentUser = { username: u, role, boostCount: boost, queriesLeft: limit };
-            localStorage.setItem('ancbyte_current_session', JSON.stringify(currentUser));
+            
+            // Oturumu sadece senin için kalıcı kaydediyoruz, diğer kullanıcılar her seferinde giriş yapacak
+            if (u === 'Veynn') {
+                localStorage.setItem('ancbyte_current_session', JSON.stringify(currentUser));
+            }
+
             logAction(u, 'Giriş yaptı');
             launchDashboard(u, role, limit, false);
         }
 
-        function handleRegister(e) {
-            e.preventDefault();
+        function handleRegister(event) {
+            event.preventDefault();
             const u = document.getElementById('reg-user').value.trim();
             const p = document.getElementById('reg-pass').value.trim();
 
@@ -324,7 +334,6 @@
                 users.forEach((usr, idx) => {
                     let boostText = usr.boost === 0 ? 'Boost Yok (1 Hak)' : (usr.boost === 1 ? '1 Boost (30 Hak)' : (usr.boost === 2 ? '2 Boost (65 Hak)' : '3+ Boost (Sınırsız)'));
                     
-                    // Sadece SANA (Veynn) özel koruma: Başka bir owner olsan bile sadece Veynn dokunulmazdır.
                     let isProtectedVeynn = (usr.username === 'Veynn');
                     let isSelf = (currentUser && usr.username === currentUser.username);
 
@@ -362,7 +371,6 @@
                 });
                 htmlList += `</div></div>`;
 
-                // Log Tablosu Bölümü
                 htmlList += `
                     <div>
                         <h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">Canlı Sistem Günlükleri (Audit Trail)</h3>
@@ -406,7 +414,6 @@
                     uObj.queriesLeft = currentUser.queriesLeft;
                     localStorage.setItem('ancbyte_users', JSON.stringify(users));
                 }
-                localStorage.setItem('ancbyte_current_session', JSON.stringify(currentUser));
             }
 
             logAction(currentUser.username, `${currentActiveTab} araması yaptı: ${val}`);
